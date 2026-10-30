@@ -1,0 +1,6 @@
+{
+  "name": "Estetika Home Care",
+  "description": "Aplicativo clínico completo para enfermeiras estetas e profissionais de estética que realizam atendimentos domiciliares. Gestão de pacientes, anamnese em 5 etapas, câmera clínica com overlay, assinatura digital com trilha SHA-256 e suporte offline-first.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

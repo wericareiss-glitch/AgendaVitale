@@ -1,0 +1,157 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Ultra-Luxurious Metallic Gold Linear Gradients -->
+    <linearGradient id="vitaleGoldMain" x1="120" y1="80" x2="390" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFF5C0" />
+      <stop offset="18%" stop-color="#FCD34D" />
+      <stop offset="42%" stop-color="#F59E0B" />
+      <stop offset="68%" stop-color="#D97706" />
+      <stop offset="88%" stop-color="#B45309" />
+      <stop offset="100%" stop-color="#78350F" />
+    </linearGradient>
+
+    <linearGradient id="vitaleGoldRightWing" x1="240" y1="440" x2="390" y2="80" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D97706" />
+      <stop offset="25%" stop-color="#F59E0B" />
+      <stop offset="55%" stop-color="#FDE68A" />
+      <stop offset="78%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#FEF3C7" />
+    </linearGradient>
+
+    <linearGradient id="vitaleGoldFace" x1="200" y1="120" x2="310" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFBEB" />
+      <stop offset="20%" stop-color="#FDE68A" />
+      <stop offset="50%" stop-color="#F59E0B" />
+      <stop offset="85%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#92400E" />
+    </linearGradient>
+
+    <linearGradient id="vitaleHairAccent" x1="130" y1="70" x2="230" y2="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FEF3C7" />
+      <stop offset="30%" stop-color="#FBBF24" />
+      <stop offset="70%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#B45309" />
+    </linearGradient>
+
+    <filter id="goldShine" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#D97706" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- NO BACKGROUND: 100% TRANSPARENT CANVAS -->
+
+  <g id="vitale-logo-mark" filter="url(#goldShine)">
+    <!-- 1. RIGHT ARM OF THE "V" - Sleek, dynamic golden tapered stroke -->
+    <path 
+      d="M 252 436 
+         C 260 436, 276 395, 292 345
+         C 318 265, 348 170, 376 96
+         C 380 85, 386 76, 394 72
+         C 390 71, 382 72, 374 76
+         C 358 84, 340 135, 320 190
+         C 300 245, 274 325, 252 385
+         C 248 395, 244 415, 244 425
+         C 244 433, 248 436, 252 436 Z" 
+      fill="url(#vitaleGoldRightWing)" 
+    />
+
+    <!-- 2. WOMAN PROFILE & FACE SILHOUETTE - Elegant aesthetic facial silhouette looking right -->
+    <path 
+      d="M 218 106
+         C 228 116, 238 132, 246 150
+         C 251 161, 256 172, 260 178
+         C 264 184, 272 188, 279 191
+         C 281 192, 281 194, 278 196
+         C 272 199, 267 201, 266 205
+         C 265 208, 271 213, 273 216
+         C 274 218, 272 220, 267 222
+         C 264 223, 263 227, 264 231
+         C 266 237, 271 242, 270 247
+         C 269 253, 262 258, 257 260
+         C 250 263, 246 270, 245 277
+         C 243 292, 242 320, 245 350
+         C 247 375, 251 405, 252 436
+         C 246 430, 238 390, 233 355
+         C 229 325, 226 295, 228 275
+         C 229 255, 224 235, 218 215
+         C 212 195, 206 175, 204 155
+         C 202 135, 208 118, 218 106 Z" 
+      fill="url(#vitaleGoldFace)" 
+    />
+
+    <!-- Delicate Closed Eyelash / Brow Curve -->
+    <path 
+      d="M 238 168 
+         C 244 163, 252 163, 257 167
+         C 254 167, 246 166, 240 170 Z" 
+      fill="#FFFBEB" 
+      opacity="0.85" 
+    />
+
+    <!-- 3. LEFT WING OF THE "V" - Flowing stylized hair locks forming the left branch -->
+    <!-- Main Outer Hair Flame / Wing Arc -->
+    <path 
+      d="M 244 425
+         C 230 400, 205 340, 188 280
+         C 174 230, 162 175, 164 125
+         C 165 98, 172 78, 185 64
+         C 183 72, 178 88, 176 108
+         C 174 140, 182 180, 194 225
+         C 206 270, 225 330, 242 385
+         C 244 395, 245 410, 244 425 Z" 
+      fill="url(#vitaleGoldMain)" 
+    />
+
+    <!-- Left Wing Flourish / Petal Wave (Upper Hair Lock) -->
+    <path 
+      d="M 185 64
+         C 192 78, 198 100, 196 125
+         C 194 150, 186 175, 178 198
+         C 172 170, 176 135, 182 100
+         C 186 80, 188 70, 185 64 Z" 
+      fill="url(#vitaleHairAccent)" 
+    />
+
+    <!-- Lower Left Leaf / Petal Hair Swoop (Lower Hair Contour) -->
+    <path 
+      d="M 226 280
+         C 210 270, 194 285, 186 308
+         C 178 332, 182 355, 196 372
+         C 208 386, 228 395, 244 398
+         C 236 388, 222 376, 214 360
+         C 205 342, 206 325, 212 308
+         C 216 296, 222 287, 226 280 Z" 
+      fill="url(#vitaleGoldMain)" 
+    />
+
+    <!-- Inner Hair Separation Strand adding high-end depth -->
+    <path 
+      d="M 204 155
+         C 214 185, 220 220, 218 250
+         C 214 230, 210 200, 204 175
+         C 201 165, 202 158, 204 155 Z" 
+      fill="#FDE68A" 
+      opacity="0.9" 
+    />
+
+    <!-- Subtle Golden Sparkle Accent at the Tip of the Right V Wing -->
+    <path 
+      d="M 386 70 
+         C 386 64, 388 60, 390 60 
+         C 392 60, 394 64, 394 70 
+         C 394 76, 392 80, 390 80 
+         C 388 80, 386 76, 386 70 Z" 
+      fill="#FFFBEB" 
+      opacity="0.95" 
+    />
+    <path 
+      d="M 380 70 
+         C 384 70, 388 68, 390 66 
+         C 392 68, 396 70, 400 70 
+         C 396 70, 392 72, 390 74 
+         C 388 72, 384 70, 380 70 Z" 
+      fill="#FFFBEB" 
+      opacity="0.95" 
+    />
+  </g>
+</svg>
