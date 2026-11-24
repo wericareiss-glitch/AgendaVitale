@@ -428,6 +428,7 @@ export default function App() {
                             onDelete={handleOpenDeletePatient}
                             onStartProntuario={handleStartProntuario}
                             onViewHistory={handleViewPatientHistory}
+                            onSaveSchedule={handleSavePatientSchedule}
                           />
                         );
                       })}

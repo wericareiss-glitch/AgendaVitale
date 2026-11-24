@@ -10,7 +10,8 @@ import {
   MessageSquare,
   ShieldCheck,
   ChevronRight,
-  Clock
+  Clock,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { Patient, Prontuario } from '../types';
 
@@ -21,6 +22,7 @@ interface PatientCardProps {
   onDelete: (patient: Patient) => void;
   onStartProntuario: (patient: Patient) => void;
   onViewHistory: (patient: Patient) => void;
+  onSaveSchedule?: (patientId: string, scheduledDate?: string) => void;
 }
 
 export const PatientCard: React.FC<PatientCardProps> = ({
@@ -30,8 +32,14 @@ export const PatientCard: React.FC<PatientCardProps> = ({
   onDelete,
   onStartProntuario,
   onViewHistory,
+  onSaveSchedule,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
+  const [rescheduleVal, setRescheduleVal] = useState(
+    patient.scheduledDate ? patient.scheduledDate.slice(0, 16) : ''
+  );
+
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu on outside click
@@ -63,6 +71,25 @@ export const PatientCard: React.FC<PatientCardProps> = ({
         return <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30">Retorno Pendente</span>;
       case 'arquivado':
         return <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-800 text-zinc-400 border border-zinc-700">Arquivado</span>;
+    }
+  };
+
+  const handleSaveReschedule = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSaveSchedule) {
+      onSaveSchedule(
+        patient.id,
+        rescheduleVal ? new Date(rescheduleVal).toISOString() : undefined
+      );
+      setIsRescheduleOpen(false);
+    }
+  };
+
+  const handleClearReschedule = () => {
+    if (onSaveSchedule && confirm(`Deseja remover o agendamento de ${patient.name}?`)) {
+      onSaveSchedule(patient.id, undefined);
+      setRescheduleVal('');
+      setIsRescheduleOpen(false);
     }
   };
 
@@ -204,6 +231,81 @@ export const PatientCard: React.FC<PatientCardProps> = ({
             </a>
           </div>
         </div>
+
+        {/* Scheduled Date Badge & Quick Reschedule Trigger */}
+        <div className="bg-zinc-950/90 rounded-2xl p-2.5 border border-zinc-800 mb-3 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4 text-yellow-400" />
+            <div>
+              <span className="text-zinc-400 text-[10px] block uppercase tracking-wider font-semibold">Agendamento</span>
+              <span className="font-bold text-white">
+                {patient.scheduledDate
+                  ? new Date(patient.scheduledDate).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+                  : 'Nenhum horário marcado'}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsRescheduleOpen(!isRescheduleOpen)}
+            className="px-3 py-1.5 rounded-xl bg-yellow-400/10 hover:bg-yellow-400/20 text-yellow-400 border border-yellow-400/30 font-bold text-[11px] transition-all cursor-pointer flex items-center gap-1"
+          >
+            <span>{patient.scheduledDate ? 'Reagendar' : '+ Agendar'}</span>
+          </button>
+        </div>
+
+        {/* Inline Reschedule Form Popup */}
+        {isRescheduleOpen && (
+          <form onSubmit={handleSaveReschedule} className="bg-black/90 border border-yellow-500/40 rounded-2xl p-3 mb-3 space-y-3 animate-in fade-in duration-150">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-yellow-400 flex items-center gap-1.5">
+                <CalendarIcon className="w-3.5 h-3.5" />
+                <span>Reagendamento Fácil</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsRescheduleOpen(false)}
+                className="text-zinc-500 hover:text-white text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div>
+              <label className="block text-[10px] text-zinc-400 mb-1">Data e Hora do Atendimento Domiciliar:</label>
+              <input
+                type="datetime-local"
+                value={rescheduleVal}
+                onChange={(e) => setRescheduleVal(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400"
+              />
+            </div>
+            <div className="flex items-center justify-between gap-2 pt-1">
+              {patient.scheduledDate && (
+                <button
+                  type="button"
+                  onClick={handleClearReschedule}
+                  className="px-3 py-1.5 rounded-xl bg-red-950/50 text-red-400 border border-red-900/50 text-[11px] font-semibold hover:bg-red-900/50 cursor-pointer"
+                >
+                  Remover
+                </button>
+              )}
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsRescheduleOpen(false)}
+                  className="px-3 py-1.5 rounded-xl bg-zinc-800 text-zinc-300 text-[11px] font-semibold hover:bg-zinc-700 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 rounded-xl bg-yellow-400 text-black text-[11px] font-bold hover:bg-yellow-300 cursor-pointer shadow-md"
+                >
+                  Salvar
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
 
         {/* Latest Clinical Record Snippet */}
         {latestProntuario ? (

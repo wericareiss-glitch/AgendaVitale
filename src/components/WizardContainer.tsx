@@ -55,9 +55,9 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
 
   const [etapa1, setEtapa1] = useState<Prontuario['etapa1']>(
     initialProntuario?.etapa1 || {
-      mainComplaints: ['Rugas dinâmicas na testa (Frontal)', 'Bigode chinês (Sulco nasogeniano)'],
-      complaintsDetails: 'Paciente busca rejuvenescimento facial natural, redução de linhas de expressão e melhora do viço cutâneo.',
-      expectations: 'Melhora estética suave sem perda de expressão natural.',
+      mainComplaints: [],
+      complaintsDetails: '',
+      expectations: '',
       previousProcedures: [],
     }
   );
@@ -65,28 +65,29 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
   const [etapa2, setEtapa2] = useState<Prontuario['etapa2']>(
     initialProntuario?.etapa2 || {
       isPregnantOrLactating: false,
-      autoimmuneDiseases: { has: false },
+      autoimmuneDiseases: { has: false, details: '' },
       activeHerpes: { hasHistory: false, isActiveNow: false, prophylacticAntiviralTaken: false },
       allergies: { has: false, list: [] },
       anticoagulantsOrAAS: false,
       keloidHistory: false,
       chronicDiseases: [],
-      permanentImplants: { hasPMMA: false },
+      permanentImplants: { hasPMMA: false, details: '' },
       infectionAtSite: false,
       clinicalRiskLevel: 'baixo',
+      observations: '',
     }
   );
 
   const [etapa3, setEtapa3] = useState<Prontuario['etapa3']>(
     initialProntuario?.etapa3 || {
       sunscreenUsage: 'diario_com_reaplicacao',
-      sunscreenFps: 50,
-      skincareRoutine: ['Gel de limpeza específico', 'Sérum de Ácido Hialurônico'],
+      sunscreenFps: 30,
+      skincareRoutine: [],
       dailyWaterIntake: 2.0,
       smoking: 'nao_fumante',
-      alcohol: 'social',
-      physicalActivity: 'moderado',
-      sleepHours: 7,
+      alcohol: 'nao_consome',
+      physicalActivity: 'sedentario',
+      sleepHours: 8,
       stressLevel: 'baixo',
       sunExposureHabit: 'moderada',
     }
@@ -94,30 +95,18 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
 
   const [etapa4, setEtapa4] = useState<Prontuario['etapa4']>(
     initialProntuario?.etapa4 || {
-      fitzpatrickScale: 'III',
-      glogauScale: 'II',
-      skinBiotype: 'mista',
+      fitzpatrickScale: 'II',
+      glogauScale: 'I',
+      skinBiotype: 'eudermica',
       turgorElasticity: 'preservada',
-      facialAsymmetries: 'Leve assimetria fisiológica facial.',
-      clinicalFindings: 'Epiderme hidratada com turgor preservado. Linhas dinâmicas leves em terço superior.',
+      facialAsymmetries: '',
+      clinicalFindings: '',
     }
   );
 
   const [etapa5, setEtapa5] = useState<Prontuario['etapa5']>(
     initialProntuario?.etapa5 || {
-      productsUsed: [
-        {
-          id: 'prod-def-1',
-          productName: 'Botox 100U (Toxina Botulínica Tipo A)',
-          manufacturer: 'Allergan AbbVie',
-          batchNumber: 'LT-849201',
-          expirationDate: '2027-10-31',
-          anvisaRegister: 'MS 1.0147.0101',
-          dosageOrVolume: '36 Unidades Totais',
-          applicationSite: 'Frontal e Glabela',
-          needleOrCannula: 'Agulha 31G 8mm',
-        },
-      ],
+      productsUsed: [],
       tcleAccepted: true,
       postCareGuidelines: [
         'Não deitar nas primeiras 4 horas após a aplicação.',
