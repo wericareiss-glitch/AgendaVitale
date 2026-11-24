@@ -13,7 +13,8 @@ import {
   Download, 
   Lock,
   Home,
-  X
+  X,
+  Cloud
 } from 'lucide-react';
 import { storageService } from '../services/storage';
 import { ProfessionalProfile } from '../types';
@@ -26,6 +27,7 @@ interface HeaderProps {
   setIsAppMenuOpen?: (open: boolean) => void;
   professional?: ProfessionalProfile;
   onLockApp?: () => void;
+  onOpenGoogleSync?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -36,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   setIsAppMenuOpen: externalSetMenuOpen,
   professional: propProfessional,
   onLockApp,
+  onOpenGoogleSync,
 }) => {
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const isMenuOpen = externalMenuOpen !== undefined ? externalMenuOpen : internalMenuOpen;
@@ -122,6 +125,18 @@ export const Header: React.FC<HeaderProps> = ({
               </>
             )}
           </div>
+
+          {/* Google Cloud Sync Badge */}
+          {onOpenGoogleSync && (
+            <button
+              onClick={onOpenGoogleSync}
+              title="Conectar Conta Google e Salvar na Nuvem"
+              className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/30 text-yellow-300 cursor-pointer transition-colors"
+            >
+              <Cloud className="w-3.5 h-3.5 text-yellow-400" />
+              <span className="text-[11px] font-semibold hidden sm:inline">Nuvem Google</span>
+            </button>
+          )}
 
           {/* Armazenamento Seguro Badge */}
           <button
@@ -263,6 +278,19 @@ export const Header: React.FC<HeaderProps> = ({
 
 
                 <div className="my-2 border-t border-zinc-800" />
+
+                {onOpenGoogleSync && (
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onOpenGoogleSync();
+                    }}
+                    className="w-full text-left p-2.5 rounded-xl bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20 border border-yellow-400/30 font-semibold flex items-center gap-2.5 transition-colors cursor-pointer"
+                  >
+                    <Cloud className="w-4 h-4 text-yellow-400" />
+                    <span>Conectar Conta Google / Nuvem</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => {

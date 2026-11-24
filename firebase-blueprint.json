@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "Patient": {
+      "title": "Patient",
+      "description": "Patient record for aesthetic home care",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "minLength": 3, "maxLength": 100 },
+        "cpf": { "type": "string", "pattern": "^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$" },
+        "phone": { "type": "string", "minLength": 10 },
+        "birthDate": { "type": "string" },
+        "address": {
+          "type": "object",
+          "properties": {
+            "street": { "type": "string" },
+            "number": { "type": "string" },
+            "neighborhood": { "type": "string" },
+            "city": { "type": "string" },
+            "state": { "type": "string", "maxLength": 2 },
+            "cep": { "type": "string" }
+          },
+          "required": ["street", "number", "neighborhood", "city", "state", "cep"]
+        },
+        "status": { "type": "string", "enum": ["ativo", "em_atendimento", "retorno_pendente", "arquivado"] },
+        "scheduledDate": { "type": "string" }
+      },
+      "required": ["id", "name", "cpf", "phone", "address", "status"]
+    },
+    "Prontuario": {
+      "title": "Prontuario",
+      "description": "Aesthetic clinical record and anamnesis",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "patientId": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string", "enum": ["rascunho", "selado"] },
+        "etapa1": { "type": "object" },
+        "etapa2": { "type": "object" },
+        "etapa3": { "type": "object" },
+        "etapa4": { "type": "object" },
+        "etapa5": { "type": "object" },
+        "audit": { "type": "object" }
+      },
+      "required": ["id", "patientId", "date", "status"]
+    }
+  },
+  "firestore": {
+    "/patients/{patientId}": {
+      "schema": { "$ref": "#/entities/Patient" },
+      "description": "Patient records collection"
+    },
+    "/prontuarios/{prontuarioId}": {
+      "schema": { "$ref": "#/entities/Prontuario" },
+      "description": "Prontuarios clinical records collection"
+    }
+  }
+}

@@ -21,6 +21,7 @@ import { WizardContainer } from './components/WizardContainer';
 import { ProntuarioViewerModal } from './components/ProntuarioViewerModal';
 import { ProfessionalSettingsModal } from './components/ProfessionalSettingsModal';
 import { WalJournalModal } from './components/WalJournalModal';
+import { GoogleCloudSyncModal } from './components/GoogleCloudSyncModal';
 import { AgendaTab } from './components/AgendaTab';
 import { ProntuariosTab } from './components/ProntuariosTab';
 import { AppLockModal } from './components/AppLockModal';
@@ -63,6 +64,7 @@ export default function App() {
 
   const [isProfModalOpen, setIsProfModalOpen] = useState(false);
   const [isWalModalOpen, setIsWalModalOpen] = useState(false);
+  const [isGoogleSyncModalOpen, setIsGoogleSyncModalOpen] = useState(false);
 
   // Load data from offline SQLite WAL engine
   const refreshData = () => {
@@ -220,6 +222,7 @@ export default function App() {
         isAppMenuOpen={isAppMenuOpen}
         setIsAppMenuOpen={setIsAppMenuOpen}
         onLockApp={() => setIsLocked(true)}
+        onOpenGoogleSync={() => setIsGoogleSyncModalOpen(true)}
       />
 
       {/* Main Container with Generous Spacing */}
@@ -561,6 +564,12 @@ export default function App() {
         isLocked={isLocked}
         professional={professional}
         onUnlock={handleUnlock}
+      />
+
+      {/* Google Cloud Sync Modal */}
+      <GoogleCloudSyncModal
+        isOpen={isGoogleSyncModalOpen}
+        onClose={() => setIsGoogleSyncModalOpen(false)}
       />
     </div>
   );
