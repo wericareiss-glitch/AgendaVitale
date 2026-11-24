@@ -178,7 +178,7 @@ export const ProntuarioViewerModal: React.FC<ProntuarioViewerModalProps> = ({
       ? prontuario.etapa5.productsUsed.map((p) => p.productName).join(', ')
       : 'Procedimento / Avaliação Estética Home Care';
 
-    const shareMessage = `Olá, ${prontuario.patientName}! ✨\n\nSegue o seu *Prontuário Clínico & TCLE Homologado* da *${prontuario.professional.clinicOrBrand || 'Vitale Estética Home Care'}*, referente ao atendimento domiciliar realizado em *${formattedDate}*.\n\n🩺 *Responsável Técnica:* ${prontuario.professional.name} (${prontuario.professional.councilType} ${prontuario.professional.councilNumber})\n💉 *Procedimentos:* ${productsSummary}\n🔒 *Selo Digital Criptográfico (SHA-256):*\n\`${prontuario.audit.auditSha256Hash || 'VALIDADO'}\`\n\n📄 *Documento oficial em imagem com assinatura digital anexado!*\nQualquer dúvida sobre orientações pós-atendimento estou à total disposição! 💛`;
+    const shareMessage = `Olá, ${prontuario.patientName}! ✨\n\nSegue o seu *Prontuário Clínico & TCLE Homologado* da *${prontuario.professional.clinicOrBrand || 'Vitale Estética Home Care'}*, referente ao atendimento domiciliar realizado em *${formattedDate}*.\n\n🩺 *Responsável Técnica:* ${prontuario.professional.name} (${prontuario.professional.councilType} ${prontuario.professional.councilNumber})\n💉 *Procedimentos:* ${productsSummary}\n🔒 *Selo Digital de Autenticidade:*\n\`${prontuario.audit.auditSha256Hash || 'VALIDADO'}\`\n\n📄 *Documento oficial em imagem com assinatura digital anexado!*\nQualquer dúvida sobre orientações pós-atendimento estou à total disposição! 💛`;
 
     navigator.clipboard.writeText(shareMessage).then(() => {
       setToast({
@@ -213,7 +213,7 @@ export const ProntuarioViewerModal: React.FC<ProntuarioViewerModalProps> = ({
         ? prontuario.etapa5.productsUsed.map((p) => p.productName).join(', ')
         : 'Procedimento / Avaliação Estética Home Care';
 
-      const shareMessage = `Olá, ${prontuario.patientName}! ✨\n\nSegue o seu *Prontuário Clínico & TCLE Homologado* da *${prontuario.professional.clinicOrBrand || 'Vitale Estética Home Care'}*, referente ao atendimento domiciliar realizado em *${formattedDate}*.\n\n🩺 *Responsável Técnica:* ${prontuario.professional.name} (${prontuario.professional.councilType} ${prontuario.professional.councilNumber})\n💉 *Procedimentos:* ${productsSummary}\n🔒 *Selo Digital Criptográfico (SHA-256):*\n\`${prontuario.audit.auditSha256Hash || 'VALIDADO'}\`\n\n📄 *Documento oficial em imagem (${imageFormat.toUpperCase()}) com assinatura digital anexado!*\nQualquer dúvida sobre orientações pós-atendimento estou à total disposição! 💛`;
+      const shareMessage = `Olá, ${prontuario.patientName}! ✨\n\nSegue o seu *Prontuário Clínico & TCLE Homologado* da *${prontuario.professional.clinicOrBrand || 'Vitale Estética Home Care'}*, referente ao atendimento domiciliar realizado em *${formattedDate}*.\n\n🩺 *Responsável Técnica:* ${prontuario.professional.name} (${prontuario.professional.councilType} ${prontuario.professional.councilNumber})\n💉 *Procedimentos:* ${productsSummary}\n🔒 *Selo Digital de Autenticidade:*\n\`${prontuario.audit.auditSha256Hash || 'VALIDADO'}\`\n\n📄 *Documento oficial em imagem (${imageFormat.toUpperCase()}) com assinatura digital anexado!*\nQualquer dúvida sobre orientações pós-atendimento estou à total disposição! 💛`;
 
       // Clean phone number: remove non-digits
       const digitsOnly = targetPhone.replace(/\D/g, '');
@@ -694,12 +694,12 @@ export const ProntuarioViewerModal: React.FC<ProntuarioViewerModalProps> = ({
               <div className="flex items-center justify-between text-yellow-400 font-bold">
                 <span className="flex items-center gap-1">
                   <Lock className="w-3.5 h-3.5" />
-                  SELO DIGITAL DE CONFORMIDADE CRIPTOGRÁFICA (SHA-256)
+                  SELO DIGITAL DE CONFORMIDADE E SEGURANÇA
                 </span>
                 <span className="text-[10px] text-slate-400 font-sans">Homologado</span>
               </div>
               <p className="text-[10px] text-slate-300 break-all select-all font-mono">
-                HASH: {prontuario.audit.auditSha256Hash || 'VALIDADO_EM_BANCO_LOCAL'}
+                CÓDIGO DE AUTENTICIDADE: {prontuario.audit.auditSha256Hash || 'VALIDADO_EM_BANCO_LOCAL'}
               </p>
               <div className="flex flex-wrap items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800">
                 <span>Timestamp UTC: {prontuario.audit.signedAtUtc || prontuario.date}</span>

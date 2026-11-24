@@ -22,7 +22,7 @@ export const WalJournalModal: React.FC<WalJournalModalProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `vitale-backup-wal-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `vitale-backup-dados-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -38,10 +38,10 @@ export const WalJournalModal: React.FC<WalJournalModalProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-heading font-bold text-white">
-                Engine SQLite WAL Vitale
+                Painel de Armazenamento & Status do Sistema
               </h2>
               <p className="text-xs text-zinc-400">
-                Arquitetura Offline-First 100% autônoma com marcações de sincronização para Nuvem / Supabase
+                Operação 100% offline com salvamento automático e segurança de dados clínicos.
               </p>
             </div>
           </div>
@@ -54,27 +54,27 @@ export const WalJournalModal: React.FC<WalJournalModalProps> = ({
           </button>
         </div>
 
-        {/* Sync & WAL Overview cards */}
+        {/* Overview cards */}
         <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-zinc-900/80 p-3.5 rounded-2xl border border-zinc-800">
-              <span className="text-[11px] text-zinc-400 font-medium block">Total de Entidades</span>
+              <span className="text-[11px] text-zinc-400 font-medium block">Total de Cadastros</span>
               <span className="text-xl font-heading font-bold text-white mt-1 block">
                 {metrics.totalRecords}
               </span>
             </div>
 
             <div className="bg-zinc-900/80 p-3.5 rounded-2xl border border-zinc-800">
-              <span className="text-[11px] text-zinc-400 font-medium block">Transações no WAL</span>
+              <span className="text-[11px] text-zinc-400 font-medium block">Atividades Registradas</span>
               <span className="text-xl font-heading font-bold text-yellow-400 mt-1 block">
                 {logs.length}
               </span>
             </div>
 
             <div className="bg-zinc-900/80 p-3.5 rounded-2xl border border-zinc-800">
-              <span className="text-[11px] text-zinc-400 font-medium block">Preparado p/ Supabase</span>
+              <span className="text-[11px] text-zinc-400 font-medium block">Status do Sistema</span>
               <span className="text-xl font-heading font-bold text-emerald-400 mt-1 block flex items-center gap-1.5">
-                <Check className="w-4 h-4 stroke-[3]" /> Pronto
+                <Check className="w-4 h-4 stroke-[3]" /> Seguro
               </span>
             </div>
           </div>
@@ -83,10 +83,10 @@ export const WalJournalModal: React.FC<WalJournalModalProps> = ({
           <div className="bg-black p-4 rounded-2xl border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <span className="text-xs font-bold text-white block">
-                Backup Completo dos Prontuários Vitale (JSON)
+                Cópia de Segurança Completa (Backup)
               </span>
               <span className="text-[11px] text-zinc-400">
-                Exporte todo o histórico clínico local para salvaguarda de segurança da informação.
+                Exporte todo o histórico clínico para salvaguarda e segurança das fichas de pacientes.
               </span>
             </div>
 
@@ -96,15 +96,15 @@ export const WalJournalModal: React.FC<WalJournalModalProps> = ({
               className="px-4 py-2 bg-yellow-400 hover:bg-yellow-300 text-black rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-md"
             >
               <Download className="w-4 h-4" />
-              <span>Baixar Arquivo JSON</span>
+              <span>Baixar Cópia de Segurança</span>
             </button>
           </div>
 
-          {/* WAL Transactions Table */}
+          {/* Transactions / Activity Log */}
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 mb-2.5 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-yellow-400" />
-              <span>Histórico de Transações do Journal WAL</span>
+              <span>Histórico de Atividades e Atendimentos</span>
             </h3>
 
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
@@ -123,7 +123,7 @@ export const WalJournalModal: React.FC<WalJournalModalProps> = ({
                           : 'bg-red-500/20 text-red-400 border border-red-500/30'
                       }`}
                     >
-                      {log.action}
+                      {log.action === 'INSERT' ? 'NOVO' : log.action === 'UPDATE' ? 'ATUALIZADO' : 'EXCLUÍDO'}
                     </span>
                     <span className="text-zinc-300 font-medium">
                       {log.dataSummary}

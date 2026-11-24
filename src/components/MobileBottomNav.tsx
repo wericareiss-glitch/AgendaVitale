@@ -1,9 +1,9 @@
 import React from 'react';
-import { Users, Calendar, FileText, PlusCircle, Sparkles } from 'lucide-react';
+import { Home, Users, Calendar, PlusCircle, Sparkles, FileText } from 'lucide-react';
 
 interface MobileBottomNavProps {
-  activeTab: 'pacientes' | 'agenda' | 'novo_prontuario' | 'perfil' | 'wal';
-  setActiveTab: (tab: 'pacientes' | 'agenda' | 'novo_prontuario' | 'perfil' | 'wal') => void;
+  activeTab: 'inicio' | 'pacientes' | 'prontuarios' | 'agenda' | 'perfil' | 'wal';
+  setActiveTab: (tab: 'inicio' | 'pacientes' | 'prontuarios' | 'agenda' | 'perfil' | 'wal') => void;
   onOpenAppMenu: () => void;
   onOpenNewPatient: () => void;
   patientsCount: number;
@@ -18,7 +18,21 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 }) => {
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-black/95 backdrop-blur-lg border-t border-zinc-800/90 px-3 py-2 pb-safe shadow-2xl flex items-center justify-between select-none">
-      {/* 1. Pacientes */}
+      {/* 1. Início */}
+      <button
+        type="button"
+        onClick={() => setActiveTab('inicio')}
+        className={`flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer ${
+          activeTab === 'inicio'
+            ? 'text-yellow-400 font-bold'
+            : 'text-zinc-400 hover:text-zinc-200'
+        }`}
+      >
+        <Home className="w-5 h-5 text-yellow-400" />
+        <span className="text-[10px] mt-0.5">Início</span>
+      </button>
+
+      {/* 2. Pacientes */}
       <button
         type="button"
         onClick={() => setActiveTab('pacientes')}
@@ -37,20 +51,6 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         )}
       </button>
 
-      {/* 2. Agenda & Retornos */}
-      <button
-        type="button"
-        onClick={() => setActiveTab('agenda')}
-        className={`flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer ${
-          activeTab === 'agenda'
-            ? 'text-yellow-400 font-bold'
-            : 'text-zinc-400 hover:text-zinc-200'
-        }`}
-      >
-        <Calendar className="w-5 h-5 text-yellow-400" />
-        <span className="text-[10px] mt-0.5">Agenda</span>
-      </button>
-
       {/* 3. Action Button Central (+ Paciente) */}
       <div className="flex-1 flex justify-center">
         <button
@@ -63,29 +63,32 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         </button>
       </div>
 
-      {/* 4. Prontuário */}
+      {/* 4. Prontuários */}
       <button
         type="button"
-        onClick={() => setActiveTab('novo_prontuario')}
+        onClick={() => setActiveTab('prontuarios')}
         className={`flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer ${
-          activeTab === 'novo_prontuario'
+          activeTab === 'prontuarios'
             ? 'text-yellow-400 font-bold'
             : 'text-zinc-400 hover:text-zinc-200'
         }`}
       >
-        <FileText className="w-5 h-5" />
-        <span className="text-[10px] mt-0.5">Prontuário</span>
+        <FileText className="w-5 h-5 text-yellow-400" />
+        <span className="text-[10px] mt-0.5">Prontuários</span>
       </button>
 
-      {/* 5. Menu do Aplicativo */}
+      {/* 5. Agenda */}
       <button
         type="button"
-        onClick={onOpenAppMenu}
-        className="flex-1 flex flex-col items-center justify-center py-1 rounded-xl text-zinc-400 hover:text-yellow-400 transition-all cursor-pointer"
-        title="Abrir Menu Vitale"
+        onClick={() => setActiveTab('agenda')}
+        className={`flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer ${
+          activeTab === 'agenda'
+            ? 'text-yellow-400 font-bold'
+            : 'text-zinc-400 hover:text-zinc-200'
+        }`}
       >
-        <Sparkles className="w-5 h-5 text-yellow-400" />
-        <span className="text-[10px] mt-0.5">Menu</span>
+        <Calendar className="w-5 h-5 text-yellow-400" />
+        <span className="text-[10px] mt-0.5">Agenda</span>
       </button>
     </nav>
   );

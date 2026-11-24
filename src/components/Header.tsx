@@ -11,18 +11,21 @@ import {
   ChevronDown, 
   PlusCircle, 
   Download, 
+  Lock,
+  Home,
   X
 } from 'lucide-react';
 import { storageService } from '../services/storage';
 import { ProfessionalProfile } from '../types';
 
 interface HeaderProps {
-  activeTab: 'pacientes' | 'agenda' | 'novo_prontuario' | 'perfil' | 'wal';
-  setActiveTab: (tab: 'pacientes' | 'agenda' | 'novo_prontuario' | 'perfil' | 'wal') => void;
+  activeTab: 'inicio' | 'pacientes' | 'prontuarios' | 'agenda' | 'perfil' | 'wal';
+  setActiveTab: (tab: 'inicio' | 'pacientes' | 'prontuarios' | 'agenda' | 'perfil' | 'wal') => void;
   onOpenNewPatientModal: () => void;
   isAppMenuOpen?: boolean;
   setIsAppMenuOpen?: (open: boolean) => void;
   professional?: ProfessionalProfile;
+  onLockApp?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -32,6 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
   isAppMenuOpen: externalMenuOpen,
   setIsAppMenuOpen: externalSetMenuOpen,
   professional: propProfessional,
+  onLockApp,
 }) => {
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const isMenuOpen = externalMenuOpen !== undefined ? externalMenuOpen : internalMenuOpen;
@@ -119,14 +123,14 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* SQLite WAL Storage Badge */}
+          {/* Armazenamento Seguro Badge */}
           <button
             onClick={() => setActiveTab('wal')}
-            title="Armazenamento local SQLite WAL integrado"
+            title="Armazenamento local seguro integrado"
             className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 hover:border-yellow-500/40 text-zinc-300 cursor-pointer transition-colors"
           >
             <Database className="w-3.5 h-3.5 text-yellow-400" />
-            <span className="text-[11px] font-medium text-zinc-300 hidden sm:inline">SQLite WAL</span>
+            <span className="text-[11px] font-medium text-zinc-300 hidden sm:inline">Armazenamento Seguro</span>
             {syncMetrics.pendingSyncCount > 0 ? (
               <span className="px-1.5 py-0.2 text-[10px] bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full font-mono">
                 {syncMetrics.pendingSyncCount}
@@ -215,12 +219,34 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onClick={() => {
                     setMenuOpen(false);
+                    setActiveTab('inicio');
+                  }}
+                  className="w-full text-left p-2.5 rounded-xl text-zinc-200 hover:bg-zinc-900 hover:text-yellow-400 flex items-center gap-2.5 transition-colors cursor-pointer"
+                >
+                  <Home className="w-4 h-4 text-yellow-400" />
+                  <span>Início & Resumo</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
                     setActiveTab('pacientes');
                   }}
                   className="w-full text-left p-2.5 rounded-xl text-zinc-200 hover:bg-zinc-900 hover:text-yellow-400 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
                   <Users className="w-4 h-4 text-zinc-400" />
                   <span>Fichas de Pacientes</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setActiveTab('prontuarios');
+                  }}
+                  className="w-full text-left p-2.5 rounded-xl text-zinc-200 hover:bg-zinc-900 hover:text-yellow-400 flex items-center gap-2.5 transition-colors cursor-pointer"
+                >
+                  <FileText className="w-4 h-4 text-yellow-400" />
+                  <span>Prontuários & Histórico</span>
                 </button>
 
                 <button
@@ -234,16 +260,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <span>Agenda & Retornos</span>
                 </button>
 
-                <button
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setActiveTab('novo_prontuario');
-                  }}
-                  className="w-full text-left p-2.5 rounded-xl text-zinc-200 hover:bg-zinc-900 hover:text-yellow-400 flex items-center gap-2.5 transition-colors cursor-pointer"
-                >
-                  <FileText className="w-4 h-4 text-yellow-400" />
-                  <span>Prontuário</span>
-                </button>
+
 
                 <div className="my-2 border-t border-zinc-800" />
 
@@ -266,7 +283,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full text-left p-2.5 rounded-xl text-zinc-300 hover:bg-zinc-900 hover:text-yellow-400 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
                   <Database className="w-4 h-4 text-zinc-400" />
-                  <span>Engine SQLite WAL & Métricas</span>
+                  <span>Status do Sistema & Dados</span>
                 </button>
 
                 <button
@@ -276,11 +293,22 @@ export const Header: React.FC<HeaderProps> = ({
                   <Download className="w-4 h-4 text-yellow-400" />
                   <span>Baixar Backup Completo (JSON)</span>
                 </button>
+
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    if (onLockApp) onLockApp();
+                  }}
+                  className="w-full text-left p-2.5 rounded-xl text-yellow-400 hover:bg-yellow-400/10 font-semibold flex items-center gap-2.5 transition-colors cursor-pointer mt-1 border border-yellow-400/20"
+                >
+                  <Lock className="w-4 h-4 text-yellow-400" />
+                  <span>Bloquear Aplicativo (Senha PIN)</span>
+                </button>
               </div>
 
               {/* Compliance footer note */}
               <div className="mt-3 pt-2.5 border-t border-zinc-800 text-[10px] text-zinc-500 flex items-center justify-between">
-                <span>Auditoria Criptográfica SHA-256</span>
+                <span>Segurança & Assinatura Digital</span>
                 <span className="text-yellow-400 font-semibold">Offline</span>
               </div>
             </div>
@@ -289,6 +317,18 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Desktop Navigation Tabs (Hidden on mobile) */}
         <nav className="hidden md:flex items-center gap-1.5 sm:gap-2">
+          <button
+            onClick={() => setActiveTab('inicio')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'inicio'
+                ? 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/40 shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+            }`}
+          >
+            <Home className="w-4 h-4 text-yellow-400" />
+            <span>Início</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('pacientes')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
@@ -299,6 +339,18 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Users className="w-4 h-4" />
             <span>Pacientes</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('prontuarios')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'prontuarios'
+                ? 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/40 shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+            }`}
+          >
+            <FileText className="w-4 h-4 text-yellow-400" />
+            <span>Prontuários</span>
           </button>
 
           <button
@@ -313,17 +365,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Agenda & Retornos</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('novo_prontuario')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'novo_prontuario'
-                ? 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/40 shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
-            }`}
-          >
-            <FileText className="w-4 h-4 text-yellow-400" />
-            <span>Prontuário</span>
-          </button>
+
 
           <button
             onClick={() => setActiveTab('perfil')}

@@ -277,7 +277,7 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
     { number: 3, title: 'Hábitos de Vida', short: 'Hábitos' },
     { number: 4, title: 'Exame Físico & Biotipo', short: 'Exame Físico' },
     { number: 5, title: 'Rastreabilidade & TCLE', short: 'TCLE' },
-    { number: 6, title: 'Assinatura & Auditoria SHA-256', short: 'Auditoria' },
+    { number: 6, title: 'Assinatura & Selagem Digital', short: 'Auditoria' },
   ];
 
   return (
@@ -417,10 +417,10 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
                 </div>
                 <div>
                   <h3 className="text-base font-heading font-bold text-white">
-                    Etapa 6: Assinatura Digital & Trilha de Auditoria Jurídica
+                    Etapa 6: Assinatura Digital & Selagem de Segurança
                   </h3>
                   <p className="text-xs text-zinc-300 mt-0.5">
-                    Coleta da assinatura manuscrita na tela, registro de coordenadas GPS do atendimento domiciliar e selagem criptográfica com Hash SHA-256.
+                    Coleta da assinatura manuscrita na tela, registro de localização GPS do atendimento domiciliar e selagem digital de autenticidade.
                   </p>
                 </div>
               </div>
@@ -468,10 +468,10 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
             <div className="bg-black p-4 rounded-2xl border border-zinc-800 text-xs space-y-2">
               <div className="flex items-center gap-2 text-yellow-400 font-bold uppercase tracking-wider text-[11px]">
                 <ShieldCheck className="w-4 h-4 text-yellow-400" />
-                <span>Protocolo de Integridade Criptográfica Vitale</span>
+                <span>Protocolo de Integridade Vitale</span>
               </div>
               <p className="text-zinc-400 leading-relaxed">
-                Ao clicar em "Selar & Concluir Prontuário", o documento será assinado pela Web Crypto API gerando um identificador imutável SHA-256. Uma cópia ficará armazenada no banco SQLite WAL local e estará pronta para exportação em PDF e envio imediato via WhatsApp.
+                Ao clicar em "Selar & Concluir Prontuário", o documento será assinado e selado com identificador digital de segurança. Uma cópia ficará armazenada no armazenamento seguro local e estará pronta para exportação em PDF e envio imediato via WhatsApp.
               </p>
             </div>
           </div>
@@ -510,7 +510,7 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
               className="px-6 py-2.5 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-300 hover:from-yellow-300 text-black rounded-xl text-xs font-bold shadow-xl shadow-yellow-950/50 flex items-center gap-2 transition-all cursor-pointer"
             >
               <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
-              <span>{isSubmitting ? 'Gerando Hash SHA-256...' : 'Selar & Concluir Prontuário'}</span>
+              <span>{isSubmitting ? 'Gerando Assinatura Digital...' : 'Selar & Concluir Prontuário'}</span>
             </button>
           )}
         </div>

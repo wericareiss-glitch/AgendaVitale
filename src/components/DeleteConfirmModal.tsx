@@ -34,7 +34,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
         </p>
 
         <div className="bg-red-950/30 border border-red-900/50 rounded-xl p-3 text-xs text-red-300 mb-5">
-          Aviso legal: O registro será arquivado do banco de dados local da aplicação e uma entrada no Journal WAL registrará a exclusão para fins de conformidade.
+          Aviso legal: O registro será removido do sistema local e um registro interno registrará a exclusão para fins de conformidade.
         </div>
 
         <div className="flex items-center justify-end gap-3">

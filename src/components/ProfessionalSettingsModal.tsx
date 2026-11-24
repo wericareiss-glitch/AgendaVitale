@@ -167,6 +167,20 @@ export const ProfessionalSettingsModal: React.FC<ProfessionalSettingsModalProps>
             </div>
           </div>
 
+          <div>
+            <label className="block text-zinc-300 font-medium mb-1">
+              Senha PIN de Segurança para Bloqueio (ex: 1234)
+            </label>
+            <input
+              type="text"
+              maxLength={6}
+              placeholder="1234"
+              value={formData.securityPin || '1234'}
+              onChange={(e) => setFormData({ ...formData, securityPin: e.target.value })}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-xs font-mono focus:outline-none focus:border-yellow-400"
+            />
+          </div>
+
           <div className="pt-4 border-t border-zinc-800 flex items-center justify-end gap-3">
             <button
               type="button"

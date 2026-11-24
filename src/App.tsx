@@ -21,11 +21,15 @@ import { ProntuarioViewerModal } from './components/ProntuarioViewerModal';
 import { ProfessionalSettingsModal } from './components/ProfessionalSettingsModal';
 import { WalJournalModal } from './components/WalJournalModal';
 import { AgendaTab } from './components/AgendaTab';
+import { ProntuariosTab } from './components/ProntuariosTab';
+import { AppLockModal } from './components/AppLockModal';
+import { ScheduleAlertBanner } from './components/ScheduleAlertBanner';
 import { storageService } from './services/storage';
+import { notificationService } from './services/notifications';
 import { Patient, Prontuario, ProfessionalProfile } from './types';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'pacientes' | 'agenda' | 'novo_prontuario' | 'perfil' | 'wal'>('pacientes');
+  const [activeTab, setActiveTab] = useState<'inicio' | 'pacientes' | 'prontuarios' | 'agenda' | 'perfil' | 'wal'>('inicio');
 
   // App icon dropdown menu state
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
@@ -34,6 +38,8 @@ export default function App() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [prontuarios, setProntuarios] = useState<Prontuario[]>([]);
   const [professional, setProfessional] = useState<ProfessionalProfile>(storageService.getProfessional());
+  const [isLocked, setIsLocked] = useState(false);
+  const [activeProntuarioInitial, setActiveProntuarioInitial] = useState<Prontuario | undefined>(undefined);
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,6 +74,10 @@ export default function App() {
 
   useEffect(() => {
     refreshData();
+    notificationService.startScheduler(() => storageService.getPatients());
+    return () => {
+      notificationService.stopScheduler();
+    };
   }, []);
 
   // Handlers for Patients
@@ -98,16 +108,43 @@ export default function App() {
   // Handlers for Prontuários & Wizard
   const handleStartProntuario = (patient: Patient) => {
     setActiveProntuarioPatient(patient);
-    setActiveTab('novo_prontuario');
+    const patientPrs = prontuarios.filter(pr => pr.patientId === patient.id);
+    if (patientPrs.length > 0) {
+      const reuse = confirm(
+        `Cliente ${patient.name} possui atendimento anterior.\n\nDeseja reutilizar os mesmos dados, anamnese e procedimentos da última sessão para este novo atendimento (várias sessões)?\n\n• OK: Reutilizar dados anteriores\n• Cancelar: Iniciar atendimento em branco`
+      );
+      if (reuse) {
+        const latest = patientPrs[0];
+        setActiveProntuarioInitial({
+          ...latest,
+          id: `pront-${Date.now()}`,
+          date: new Date().toISOString(),
+          status: 'rascunho',
+        });
+      } else {
+        setActiveProntuarioInitial(undefined);
+      }
+    } else {
+      setActiveProntuarioInitial(undefined);
+    }
+
   };
 
-  const handleSavePatientDates = (patientId: string, scheduledDate?: string, returnDate?: string) => {
+  const handleUnlock = (pin: string) => {
+    const correctPin = professional.securityPin || '1234';
+    if (pin === correctPin) {
+      setIsLocked(false);
+      return true;
+    }
+    return false;
+  };
+
+  const handleSavePatientSchedule = (patientId: string, scheduledDate?: string) => {
     const p = storageService.getPatientById(patientId);
     if (p) {
       storageService.savePatient({
         ...p,
         scheduledDate,
-        returnDate,
       });
       refreshData();
     }
@@ -193,6 +230,7 @@ export default function App() {
         }}
         isAppMenuOpen={isAppMenuOpen}
         setIsAppMenuOpen={setIsAppMenuOpen}
+        onLockApp={() => setIsLocked(true)}
       />
 
       {/* Main Container with Generous Spacing */}
@@ -203,52 +241,65 @@ export default function App() {
             patients={patients}
             onEditPatient={handleOpenEditPatient}
             onStartProntuario={handleStartProntuario}
-            onSavePatientDates={handleSavePatientDates}
+            onSavePatientSchedule={handleSavePatientSchedule}
           />
         )}
 
-        {/* ===================== TAB 1: PACIENTES & AGENDA ===================== */}
-        {activeTab === 'pacientes' && (
-          <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-150">
-            {/* Top Section: Title & Actions Header */}
+        {/* ===================== TAB 1: INÍCIO ===================== */}
+        {activeTab === 'inicio' && (
+          <div className="space-y-8 animate-in fade-in duration-150">
+            {/* Top Welcome Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-zinc-900/80">
               <div className="space-y-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400">
-                  Painel Clínico Domiciliar
+                  Painel Inicial • Instituto Vitale
                 </span>
                 <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-white tracking-tight">
-                  Agenda & Fichas de Pacientes
+                  Bem-vinda, {professional.name.split(' ')[0]}
                 </h1>
                 <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
-                  Gerencie atendimentos domiciliares, histórico clínico e prontuários com conformidade técnica e operação 100% offline.
+                  Visão geral de seus atendimentos domiciliares, indicadores operacionais e acesso rápido aos pacientes.
                 </p>
               </div>
 
-              <button
-                onClick={() => {
-                  setPatientToEdit(null);
-                  setIsPatientModalOpen(true);
-                }}
-                className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-300 hover:from-yellow-300 hover:to-amber-300 text-black rounded-2xl text-xs sm:text-sm font-bold shadow-lg shadow-yellow-950/40 active:scale-98 transition-all cursor-pointer"
-              >
-                <UserPlus className="w-4 h-4 stroke-[2.5]" />
-                <span>+ Novo Paciente</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab('agenda')}
+                  className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-yellow-400 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Ver Agenda
+                </button>
+                <button
+                  onClick={() => {
+                    setPatientToEdit(null);
+                    setIsPatientModalOpen(true);
+                  }}
+                  className="px-5 py-2.5 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-300 hover:from-yellow-300 text-black rounded-xl text-xs font-bold shadow-lg shadow-yellow-950/40 cursor-pointer"
+                >
+                  + Novo Paciente
+                </button>
+              </div>
             </div>
 
-            {/* SEÇÃO 1: Resumo Operacional em Cards Discretos */}
+            {/* Schedule Alert Banner */}
+            <ScheduleAlertBanner
+              patients={patients}
+              onStartProntuario={handleStartProntuario}
+              onViewAgenda={() => setActiveTab('agenda')}
+            />
+
+            {/* Resumo Operacional */}
             <section className="space-y-3">
               <div className="flex items-center justify-between text-xs text-zinc-400">
                 <span className="font-semibold uppercase tracking-wider text-[11px] text-zinc-400">
                   Resumo Operacional
                 </span>
                 <span className="text-[11px] text-zinc-400 font-mono">
-                  Sincronização Local WAL Ativa
+                  Sistema 100% Offline
                 </span>
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
-                {/* Metric 1 */}
                 <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs text-zinc-400 font-medium">Total de Pacientes</span>
@@ -264,7 +315,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Metric 2 */}
                 <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs text-zinc-400 font-medium">Prontuários Selados</span>
@@ -276,27 +326,25 @@ export default function App() {
                     <span className="text-2xl sm:text-3xl font-extrabold font-heading text-yellow-400">
                       {prontuarios.length}
                     </span>
-                    <span className="text-[11px] text-zinc-400">com SHA-256</span>
+                    <span className="text-[11px] text-zinc-400">assinados</span>
                   </div>
                 </div>
 
-                {/* Metric 3 */}
                 <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-zinc-400 font-medium">Retornos Pendentes</span>
+                    <span className="text-xs text-zinc-400 font-medium">Agendados</span>
                     <div className="w-9 h-9 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400">
                       <Clock className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-2xl sm:text-3xl font-extrabold font-heading text-amber-300">
-                      {patients.filter((p) => p.status === 'retorno_pendente').length}
+                      {patients.filter((p) => p.scheduledDate).length}
                     </span>
                     <span className="text-[11px] text-zinc-400">pacientes</span>
                   </div>
                 </div>
 
-                {/* Metric 4 */}
                 <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs text-zinc-400 font-medium">Rotas de Bairros</span>
@@ -314,9 +362,8 @@ export default function App() {
               </div>
             </section>
 
-            {/* SEÇÃO 2: Card Discreto de Controle e Filtros de Pacientes */}
-            <section className="bg-zinc-950/90 border border-zinc-850/90 rounded-3xl p-5 sm:p-7 shadow-xl shadow-black/50 space-y-5">
-              {/* Header do Grupo de Filtros */}
+            {/* Pesquisa & Filtros de Atendimento */}
+            <section className="bg-zinc-950/90 border border-zinc-850/90 rounded-3xl p-5 sm:p-7 shadow-xl space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800/70">
                 <div className="flex items-center gap-2">
                   <SlidersHorizontal className="w-4 h-4 text-yellow-400" />
@@ -336,9 +383,7 @@ export default function App() {
                 )}
               </div>
 
-              {/* Linha Principal de Busca e Status */}
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 sm:gap-4">
-                {/* Campo de Busca Ampliado e Confortável */}
                 <div className="relative flex-1">
                   <Search className="w-4 h-4 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
                   <input
@@ -358,7 +403,6 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Filtro por Status Segmentado e Elegante */}
                 <div className="p-1.5 bg-zinc-900/90 border border-zinc-800 rounded-2xl flex items-center gap-1 overflow-x-auto scrollbar-none">
                   {(['todos', 'ativo', 'em_atendimento', 'retorno_pendente'] as const).map((st) => (
                     <button
@@ -379,7 +423,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Linha Secundária: Filtro por Rotas de Bairro */}
               {allNeighborhoods.length > 0 && (
                 <div className="pt-2 border-t border-zinc-850/60 flex items-center gap-2 overflow-x-auto text-xs scrollbar-none">
                   <span className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5 shrink-0">
@@ -414,36 +457,53 @@ export default function App() {
                 </div>
               )}
             </section>
+          </div>
+        )}
 
-            {/* SEÇÃO 3: Fichas de Pacientes (Grid com Espaçamento Amplo) */}
+        {/* ===================== TAB 2: PACIENTES ===================== */}
+        {activeTab === 'pacientes' && (
+          <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-150">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-zinc-900/80">
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400">
+                  Gestão de Cadastros
+                </span>
+                <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-white tracking-tight">
+                  Fichas de Pacientes
+                </h1>
+                <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
+                  Lista completa de pacientes cadastrados para atendimentos domiciliares.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setPatientToEdit(null);
+                  setIsPatientModalOpen(true);
+                }}
+                className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-300 hover:from-yellow-300 text-black rounded-2xl text-xs sm:text-sm font-bold shadow-lg shadow-yellow-950/40 cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4 stroke-[2.5]" />
+                <span>+ Novo Paciente</span>
+              </button>
+            </div>
+
             <section className="space-y-4">
               <div className="flex items-center justify-between text-xs text-zinc-400 px-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-heading font-bold text-sm text-white">
-                    Fichas Cadastradas
-                  </span>
-                  <span className="text-zinc-400">·</span>
-                  <span className="text-zinc-400">
-                    {filteredPatients.length} de {patients.length} pacientes
-                  </span>
-                </div>
-
-                {hasActiveFilters && (
-                  <span className="text-yellow-400 text-xs">
-                    Filtros ativos aplicados
-                  </span>
-                )}
+                <span className="font-heading font-bold text-sm text-white">
+                  Fichas Cadastradas ({filteredPatients.length})
+                </span>
               </div>
 
               {filteredPatients.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {filteredPatients.map((patient) => {
-                    const latestProntuario = prontuarios.find((pr) => pr.patientId === patient.id);
+                    const latestPront = prontuarios.find((pr) => pr.patientId === patient.id);
                     return (
                       <PatientCard
                         key={patient.id}
                         patient={patient}
-                        latestProntuario={latestProntuario}
+                        latestProntuario={latestPront}
                         onEdit={handleOpenEditPatient}
                         onDelete={handleOpenDeletePatient}
                         onStartProntuario={handleStartProntuario}
@@ -453,175 +513,362 @@ export default function App() {
                   })}
                 </div>
               ) : (
-                <div className="bg-zinc-950/80 rounded-3xl border border-zinc-850 p-12 sm:p-16 text-center space-y-4 shadow-sm">
+                <div className="bg-zinc-950/80 rounded-3xl border border-zinc-850 p-12 sm:p-16 text-center space-y-4">
                   <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 mx-auto flex items-center justify-center text-yellow-400">
                     <Users className="w-8 h-8" />
                   </div>
-                  <div className="space-y-1.5">
-                    <h3 className="text-base font-bold text-white">Nenhum paciente localizado</h3>
-                    <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
-                      {hasActiveFilters
-                        ? 'Nenhum paciente coincide com os termos ou rotas pesquisadas. Tente limpar os filtros para visualizar todas as fichas.'
-                        : 'Cadastre seu primeiro paciente para iniciar o atendimento domiciliar Vitale.'}
-                    </p>
-                  </div>
-                  <div className="pt-2">
-                    {hasActiveFilters ? (
-                      <button
-                        onClick={handleResetFilters}
-                        className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-                      >
-                        Limpar Filtros de Busca
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setPatientToEdit(null);
-                          setIsPatientModalOpen(true);
-                        }}
-                        className="px-6 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black rounded-xl text-xs font-bold shadow-md transition-colors cursor-pointer"
-                      >
-                        + Cadastrar Novo Paciente
-                      </button>
-                    )}
-                  </div>
+                  <h3 className="text-base font-bold text-white">Nenhum paciente localizado</h3>
+                  <p className="text-xs text-zinc-400 max-w-md mx-auto">
+                    Cadastre seu primeiro paciente ou ajuste os filtros na aba Início.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setPatientToEdit(null);
+                      setIsPatientModalOpen(true);
+                    }}
+                    className="px-6 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black rounded-xl text-xs font-bold shadow-md cursor-pointer"
+                  >
+                    + Cadastrar Novo Paciente
+                  </button>
                 </div>
               )}
             </section>
           </div>
         )}
 
-        {/* ===================== TAB 2: PRONTUÁRIO ===================== */}
-        {activeTab === 'novo_prontuario' && (
+        {/* ===================== WIZARD CONTAINER (WHEN ATENDIMENTO IS ACTIVE) ===================== */}
+        {activeProntuarioPatient ? (
           <div className="space-y-8 animate-in fade-in duration-150">
-            {activeProntuarioPatient ? (
-              <WizardContainer
-                patient={activeProntuarioPatient}
-                professional={professional}
-                onSaveProntuario={handleSaveProntuario}
-                onCancel={() => {
-                  setActiveProntuarioPatient(null);
-                  setActiveTab('pacientes');
-                }}
-              />
-            ) : (
-              /* Seletor Espaçoso e Elegante de Paciente para Prontuário */
-              <div className="max-w-3xl mx-auto space-y-6">
-                <div className="bg-zinc-950/90 border border-zinc-850 rounded-3xl p-6 sm:p-10 space-y-7 shadow-2xl">
-                  {/* Cabeçalho do Seletor */}
-                  <div className="text-center space-y-3 pb-4 border-b border-zinc-850">
-                    <div className="w-16 h-16 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 mx-auto flex items-center justify-center shadow-md">
-                      <FileText className="w-8 h-8" />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400">
-                        Atendimento Clínico
-                      </span>
-                      <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-white">
-                        Novo Prontuário
-                      </h2>
-                    </div>
-                    <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto leading-relaxed">
-                      Selecione a paciente para abrir o fluxo de anamnese, triagem de contraindicações, rastreabilidade de lote e selagem com assinatura digital SHA-256.
+            <WizardContainer
+              patient={activeProntuarioPatient}
+              professional={professional}
+              initialProntuario={activeProntuarioInitial}
+              onSaveProntuario={handleSaveProntuario}
+              onCancel={() => {
+                setActiveProntuarioPatient(null);
+                setActiveProntuarioInitial(undefined);
+                setActiveTab('prontuarios');
+              }}
+            />
+          </div>
+        ) : (
+          <>
+            {/* ===================== TAB 1: INÍCIO ===================== */}
+            {activeTab === 'inicio' && (
+              <div className="space-y-8 animate-in fade-in duration-150">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-zinc-900/80">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400">
+                      Painel Inicial • Instituto Vitale
+                    </span>
+                    <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-white tracking-tight">
+                      Bem-vinda, {professional.name.split(' ')[0]}
+                    </h1>
+                    <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
+                      Visão geral de seus atendimentos domiciliares, indicadores operacionais e acesso rápido aos pacientes.
                     </p>
                   </div>
 
-                  {/* Campo de Busca Rápida de Paciente */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <label className="font-bold uppercase tracking-wider text-yellow-400 text-[11px]">
-                        Selecione a Paciente para o Atendimento:
-                      </label>
-                      <span className="text-zinc-400 text-[11px]">
-                        {selectablePatientsForProntuario.length} disponíveis
-                      </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setActiveTab('agenda')}
+                      className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-yellow-400 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Ver Agenda
+                    </button>
+                    <button
+                      onClick={() => {
+                        setPatientToEdit(null);
+                        setIsPatientModalOpen(true);
+                      }}
+                      className="px-5 py-2.5 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-300 hover:from-yellow-300 text-black rounded-xl text-xs font-bold shadow-lg shadow-yellow-950/40 cursor-pointer"
+                    >
+                      + Novo Paciente
+                    </button>
+                  </div>
+                </div>
+
+                {/* Schedule Alert Banner */}
+                <ScheduleAlertBanner
+                  patients={patients}
+                  onStartProntuario={handleStartProntuario}
+                  onViewAgenda={() => setActiveTab('agenda')}
+                />
+
+                {/* Resumo Operacional */}
+                <section className="space-y-3">
+                  <div className="flex items-center justify-between text-xs text-zinc-400">
+                    <span className="font-semibold uppercase tracking-wider text-[11px] text-zinc-400">
+                      Resumo Operacional
+                    </span>
+                    <span className="text-[11px] text-zinc-400 font-mono">
+                      Sistema 100% Offline
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+                    <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs text-zinc-400 font-medium">Total de Pacientes</span>
+                        <div className="w-9 h-9 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-yellow-400">
+                          <Users className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl sm:text-3xl font-extrabold font-heading text-white">
+                          {patients.length}
+                        </span>
+                        <span className="text-[11px] text-zinc-400">fichas</span>
+                      </div>
                     </div>
 
-                    <div className="relative">
-                      <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs text-zinc-400 font-medium">Prontuários Selados</span>
+                        <div className="w-9 h-9 rounded-2xl bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center text-yellow-400">
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl sm:text-3xl font-extrabold font-heading text-yellow-400">
+                          {prontuarios.length}
+                        </span>
+                        <span className="text-[11px] text-zinc-400">assinados</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs text-zinc-400 font-medium">Agendados</span>
+                        <div className="w-9 h-9 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400">
+                          <Clock className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl sm:text-3xl font-extrabold font-heading text-amber-300">
+                          {patients.filter((p) => p.scheduledDate).length}
+                        </span>
+                        <span className="text-[11px] text-zinc-400">pacientes</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs text-zinc-400 font-medium">Rotas de Bairros</span>
+                        <div className="w-9 h-9 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-yellow-400">
+                          <MapPin className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl sm:text-3xl font-extrabold font-heading text-zinc-100">
+                          {allNeighborhoods.length}
+                        </span>
+                        <span className="text-[11px] text-zinc-400">regiões</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Pesquisa & Filtros de Atendimento */}
+                <section className="bg-zinc-950/90 border border-zinc-850/90 rounded-3xl p-5 sm:p-7 shadow-xl space-y-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800/70">
+                    <div className="flex items-center gap-2">
+                      <SlidersHorizontal className="w-4 h-4 text-yellow-400" />
+                      <h2 className="text-sm font-bold text-white tracking-wide">
+                        Pesquisa & Filtros de Atendimento
+                      </h2>
+                    </div>
+
+                    {hasActiveFilters && (
+                      <button
+                        onClick={handleResetFilters}
+                        className="flex items-center gap-1.5 text-xs text-yellow-400 hover:text-yellow-300 transition-colors cursor-pointer"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Limpar Filtros</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 sm:gap-4">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
-                        placeholder="Buscar paciente por nome, bairro ou CPF..."
-                        value={prontuarioPatientSearch}
-                        onChange={(e) => setProntuarioPatientSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 text-xs sm:text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
+                        placeholder="Pesquisar por nome da paciente, bairro ou CPF..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-11 pr-16 py-3 rounded-2xl bg-zinc-900/90 border border-zinc-800 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
                       />
-                      {prontuarioPatientSearch && (
+                      {searchQuery && (
                         <button
-                          onClick={() => setProntuarioPatientSearch('')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 hover:text-white"
+                          onClick={() => setSearchQuery('')}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors cursor-pointer"
                         >
                           Limpar
                         </button>
                       )}
                     </div>
 
-                    {/* Lista Confortável com Scrollbar Suave */}
-                    <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
-                      {selectablePatientsForProntuario.map((pat) => (
-                        <div
-                          key={pat.id}
-                          onClick={() => setActiveProntuarioPatient(pat)}
-                          className="p-4 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-yellow-400/60 transition-all cursor-pointer flex items-center justify-between group"
+                    <div className="p-1.5 bg-zinc-900/90 border border-zinc-800 rounded-2xl flex items-center gap-1 overflow-x-auto scrollbar-none">
+                      {(['todos', 'ativo', 'em_atendimento', 'retorno_pendente'] as const).map((st) => (
+                        <button
+                          key={st}
+                          onClick={() => setStatusFilter(st)}
+                          className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                            statusFilter === st
+                              ? 'bg-yellow-400 text-black shadow-md font-bold'
+                              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
+                          }`}
                         >
-                          <div className="space-y-1 min-w-0 pr-3">
-                            <h4 className="font-bold text-sm sm:text-base text-white group-hover:text-yellow-400 transition-colors truncate">
-                              {pat.name}
-                            </h4>
-                            <div className="flex items-center gap-2 text-xs text-zinc-400 flex-wrap">
-                              <span>CPF: <span className="font-mono text-zinc-300">{pat.cpf}</span></span>
-                              <span>·</span>
-                              <span>{pat.age} anos</span>
-                              <span>·</span>
-                              <span className="text-yellow-300/80 flex items-center gap-1">
-                                <MapPin className="w-3 h-3 text-yellow-400 inline" />
-                                {pat.address.neighborhood}
-                              </span>
-                            </div>
-                          </div>
-
-                          <span className="shrink-0 text-xs font-bold text-yellow-400 bg-yellow-400/10 px-3.5 py-2 rounded-xl border border-yellow-400/30 group-hover:bg-yellow-400 group-hover:text-black flex items-center gap-1.5 transition-all">
-                            <span>Iniciar</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </span>
-                        </div>
+                          {st === 'todos' && 'Todos'}
+                          {st === 'ativo' && 'Ativos'}
+                          {st === 'em_atendimento' && 'Hoje'}
+                          {st === 'retorno_pendente' && 'Retornos'}
+                        </button>
                       ))}
-
-                      {selectablePatientsForProntuario.length === 0 && (
-                        <div className="p-8 rounded-2xl bg-zinc-900/40 border border-zinc-850 text-center space-y-2">
-                          <p className="text-xs text-zinc-400">
-                            Nenhuma paciente encontrada com o termo "{prontuarioPatientSearch}".
-                          </p>
-                        </div>
-                      )}
                     </div>
                   </div>
 
-                  {/* Rodapé de Ações do Seletor */}
-                  <div className="pt-4 border-t border-zinc-850 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('pacientes')}
-                      className="text-xs font-medium text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                    >
-                      ← Voltar para Agenda
-                    </button>
+                  {allNeighborhoods.length > 0 && (
+                    <div className="pt-2 border-t border-zinc-850/60 flex items-center gap-2 overflow-x-auto text-xs scrollbar-none">
+                      <span className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5 shrink-0">
+                        <MapPin className="w-3.5 h-3.5 text-yellow-400" />
+                        <span>Filtrar por Rota:</span>
+                      </span>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPatientToEdit(null);
-                        setIsPatientModalOpen(true);
-                      }}
-                      className="text-xs text-yellow-400 hover:underline font-bold cursor-pointer"
-                    >
-                      + Cadastrar Nova Paciente
-                    </button>
-                  </div>
-                </div>
+                      <button
+                        onClick={() => setNeighborhoodFilter('todos')}
+                        className={`px-3 py-1.5 rounded-xl text-[11px] transition-all shrink-0 cursor-pointer ${
+                          neighborhoodFilter === 'todos'
+                            ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 font-bold'
+                            : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200'
+                        }`}
+                      >
+                        Todas as Regiões
+                      </button>
+
+                      {allNeighborhoods.map((bairro) => (
+                        <button
+                          key={bairro}
+                          onClick={() => setNeighborhoodFilter(bairro)}
+                          className={`px-3 py-1.5 rounded-xl text-[11px] transition-all shrink-0 cursor-pointer ${
+                            neighborhoodFilter === bairro
+                              ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 font-bold'
+                              : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200'
+                          }`}
+                        >
+                          {bairro}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </section>
               </div>
             )}
-          </div>
+
+            {/* ===================== TAB 2: PACIENTES ===================== */}
+            {activeTab === 'pacientes' && (
+              <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-150">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-zinc-900/80">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400">
+                      Gestão de Cadastros
+                    </span>
+                    <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-white tracking-tight">
+                      Fichas de Pacientes
+                    </h1>
+                    <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
+                      Lista completa de pacientes cadastrados para atendimentos domiciliares.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setPatientToEdit(null);
+                      setIsPatientModalOpen(true);
+                    }}
+                    className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-300 hover:from-yellow-300 text-black rounded-2xl text-xs sm:text-sm font-bold shadow-lg shadow-yellow-950/40 cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4 stroke-[2.5]" />
+                    <span>+ Novo Paciente</span>
+                  </button>
+                </div>
+
+                <section className="space-y-4">
+                  <div className="flex items-center justify-between text-xs text-zinc-400 px-1">
+                    <span className="font-heading font-bold text-sm text-white">
+                      Fichas Cadastradas ({filteredPatients.length})
+                    </span>
+                  </div>
+
+                  {filteredPatients.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {filteredPatients.map((patient) => {
+                        const latestPront = prontuarios.find((pr) => pr.patientId === patient.id);
+                        return (
+                          <PatientCard
+                            key={patient.id}
+                            patient={patient}
+                            latestProntuario={latestPront}
+                            onEdit={handleOpenEditPatient}
+                            onDelete={handleOpenDeletePatient}
+                            onStartProntuario={handleStartProntuario}
+                            onViewHistory={handleViewPatientHistory}
+                          />
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="bg-zinc-950/80 rounded-3xl border border-zinc-850 p-12 sm:p-16 text-center space-y-4">
+                      <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 mx-auto flex items-center justify-center text-yellow-400">
+                        <Users className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-base font-bold text-white">Nenhum paciente localizado</h3>
+                      <p className="text-xs text-zinc-400 max-w-md mx-auto">
+                        Cadastre seu primeiro paciente ou ajuste os filtros na aba Início.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setPatientToEdit(null);
+                          setIsPatientModalOpen(true);
+                        }}
+                        className="px-6 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black rounded-xl text-xs font-bold shadow-md cursor-pointer"
+                      >
+                        + Cadastrar Novo Paciente
+                      </button>
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+
+            {/* ===================== TAB: PRONTUÁRIOS ===================== */}
+            {activeTab === 'prontuarios' && (
+              <ProntuariosTab
+                patients={patients}
+                prontuarios={prontuarios}
+                onViewProntuario={(pr) => {
+                  setActiveViewerProntuario(pr);
+                  setIsViewerOpen(true);
+                }}
+                onStartProntuario={handleStartProntuario}
+                onOpenNewProntuarioSelector={() => {
+                  setActiveTab('pacientes');
+                }}
+              />
+            )}
+
+            {/* ===================== TAB: AGENDA ===================== */}
+            {activeTab === 'agenda' && (
+              <AgendaTab
+                patients={patients}
+                onEditPatient={handleOpenEditPatient}
+                onStartProntuario={handleStartProntuario}
+                onSavePatientSchedule={handleSavePatientSchedule}
+              />
+            )}
+          </>
         )}
       </main>
 
@@ -693,6 +940,13 @@ export default function App() {
       <WalJournalModal
         isOpen={isWalModalOpen}
         onClose={() => setIsWalModalOpen(false)}
+      />
+
+      {/* App Security Lock Modal */}
+      <AppLockModal
+        isLocked={isLocked}
+        professional={professional}
+        onUnlock={handleUnlock}
       />
     </div>
   );

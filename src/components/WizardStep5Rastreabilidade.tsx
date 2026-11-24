@@ -463,7 +463,7 @@ export const WizardStep5Rastreabilidade: React.FC<Step5Props> = ({
               Declaro que a paciente (ou responsável) leu, compreendeu e manifestou aceite formal deste TCLE *
             </span>
             <span className="text-xs text-zinc-400">
-              O aceite deste termo será assinado digitalmente na próxima etapa e selado com hash criptográfico SHA-256 e GPS.
+              O aceite deste termo será assinado digitalmente na próxima etapa e selado com código de segurança e localização GPS.
             </span>
           </div>
         </label>

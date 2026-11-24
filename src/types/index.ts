@@ -19,7 +19,6 @@ export interface Patient {
   gender?: 'Feminino' | 'Masculino' | 'Outro';
   address: Address;
   scheduledDate?: string; // Data e horário de agendamento
-  returnDate?: string; // Data de retorno / revisão
   createdAt: string;
   updatedAt: string;
   status: 'ativo' | 'em_atendimento' | 'retorno_pendente' | 'arquivado';
@@ -67,6 +66,7 @@ export interface ProfessionalProfile {
   clinicOrBrand: string;
   phone: string;
   email: string;
+  securityPin?: string;
 }
 
 export interface Prontuario {
