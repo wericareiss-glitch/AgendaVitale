@@ -257,7 +257,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full text-left p-2.5 rounded-xl text-zinc-200 hover:bg-zinc-900 hover:text-yellow-400 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
                   <Calendar className="w-4 h-4 text-yellow-400" />
-                  <span>Agenda & Retornos</span>
+                  <span>Agenda</span>
                 </button>
 
 
@@ -362,7 +362,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Calendar className="w-4 h-4 text-yellow-400" />
-            <span>Agenda & Retornos</span>
+            <span>Agenda</span>
           </button>
 
 

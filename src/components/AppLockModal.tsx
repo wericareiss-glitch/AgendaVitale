@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ShieldCheck, Lock, KeyRound, Sparkles, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShieldCheck, Lock, Fingerprint, Sparkles, AlertCircle, ScanFace } from 'lucide-react';
 import { ProfessionalProfile } from '../types';
 
 interface AppLockModalProps {
@@ -15,6 +15,18 @@ export const AppLockModal: React.FC<AppLockModalProps> = ({
 }) => {
   const [pinInput, setPinInput] = useState('');
   const [error, setError] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+
+  useEffect(() => {
+    if (isLocked && window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then((available) => {
+        setBiometricAvailable(available);
+      }).catch(() => {
+        setBiometricAvailable(false);
+      });
+    }
+  }, [isLocked]);
 
   if (!isLocked) return null;
 
@@ -27,6 +39,63 @@ export const AppLockModal: React.FC<AppLockModalProps> = ({
     } else {
       setError(false);
       setPinInput('');
+    }
+  };
+
+  const handleBiometricUnlock = async () => {
+    setBiometricLoading(true);
+    setError(false);
+    try {
+      const challenge = new Uint8Array(32);
+      window.crypto.getRandomValues(challenge);
+
+      let credential;
+      try {
+        credential = await navigator.credentials.get({
+          publicKey: {
+            challenge,
+            timeout: 60000,
+            userVerification: 'required',
+            rpId: window.location.hostname,
+          }
+        });
+      } catch {
+        // If no credentials registered yet for this domain, create one for biometric login
+        const createChallenge = new Uint8Array(32);
+        window.crypto.getRandomValues(createChallenge);
+        
+        const userId = new Uint8Array(16);
+        window.crypto.getRandomValues(userId);
+
+        credential = await navigator.credentials.create({
+          publicKey: {
+            challenge: createChallenge,
+            rp: { name: 'Vitale Home Care Pro', id: window.location.hostname },
+            user: {
+              id: userId,
+              name: professional.email || 'profissional@vitale.com',
+              displayName: professional.name,
+            },
+            pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
+            authenticatorSelection: {
+              authenticatorAttachment: 'platform',
+              userVerification: 'required',
+            },
+            timeout: 60000,
+          }
+        });
+      }
+
+      if (credential) {
+        const success = onUnlock(professional.securityPin || '1234');
+        if (!success) {
+          setError(true);
+        }
+      }
+    } catch (err: any) {
+      console.warn('Biometric auth cancelled or failed:', err?.message);
+    } finally {
+      setBiometricLoading(false);
     }
   };
 
@@ -45,9 +114,29 @@ export const AppLockModal: React.FC<AppLockModalProps> = ({
             Aplicativo Bloqueado
           </h2>
           <p className="text-xs text-zinc-400 max-w-xs mx-auto leading-relaxed">
-            Área restrita de atendimento domiciliar de <strong className="text-white">{professional.name}</strong> ({professional.councilType} {professional.councilNumber}). Digite sua senha PIN para desbloquear.
+            Área restrita de atendimento domiciliar de <strong className="text-white">{professional.name}</strong> ({professional.councilType} {professional.councilNumber}). Use biometria ou PIN para desbloquear.
           </p>
         </div>
+
+        {/* Biometric / FaceID Button if available */}
+        {biometricAvailable && (
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={handleBiometricUnlock}
+              disabled={biometricLoading}
+              className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-yellow-400/40 text-yellow-400 font-bold rounded-2xl text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-lg shadow-yellow-950/20"
+            >
+              <ScanFace className="w-5 h-5 text-yellow-400" />
+              <span>{biometricLoading ? 'Verificando Biometria...' : 'Desbloquear com Biometria / FaceID'}</span>
+            </button>
+            <div className="flex items-center gap-2 my-2 text-[11px] text-zinc-500">
+              <div className="flex-1 h-px bg-zinc-800" />
+              <span>ou digite o PIN</span>
+              <div className="flex-1 h-px bg-zinc-800" />
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -55,7 +144,7 @@ export const AppLockModal: React.FC<AppLockModalProps> = ({
               type="password"
               maxLength={6}
               autoFocus
-              placeholder="Digite o PIN de Segurança (ex: 1234)"
+              placeholder="Digite o PIN (ex: 1234)"
               value={pinInput}
               onChange={(e) => {
                 setPinInput(e.target.value);
@@ -76,7 +165,7 @@ export const AppLockModal: React.FC<AppLockModalProps> = ({
             className="w-full py-3.5 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-300 hover:from-yellow-300 text-black font-extrabold rounded-2xl text-sm shadow-xl shadow-yellow-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
-            <span>Desbloquear Prontuários</span>
+            <span>Desbloquear com PIN</span>
           </button>
         </form>
 

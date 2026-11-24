@@ -9,7 +9,8 @@ import {
   UserPlus,
   SlidersHorizontal,
   RotateCcw,
-  ArrowRight
+  ArrowRight,
+  Calendar
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { MobileBottomNav } from './components/MobileBottomNav';
@@ -38,7 +39,7 @@ export default function App() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [prontuarios, setProntuarios] = useState<Prontuario[]>([]);
   const [professional, setProfessional] = useState<ProfessionalProfile>(storageService.getProfessional());
-  const [isLocked, setIsLocked] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
   const [activeProntuarioInitial, setActiveProntuarioInitial] = useState<Prontuario | undefined>(undefined);
 
   // Search & Filter state
@@ -127,7 +128,6 @@ export default function App() {
     } else {
       setActiveProntuarioInitial(undefined);
     }
-
   };
 
   const handleUnlock = (pin: string) => {
@@ -198,17 +198,6 @@ export default function App() {
     return matchesSearch && matchesStatus && matchesNeighborhood;
   });
 
-  // Filtered patients for Prontuario selection
-  const selectablePatientsForProntuario = patients.filter((pat) => {
-    if (!prontuarioPatientSearch) return true;
-    const query = prontuarioPatientSearch.toLowerCase();
-    return (
-      pat.name.toLowerCase().includes(query) ||
-      pat.cpf.includes(query) ||
-      pat.address.neighborhood.toLowerCase().includes(query)
-    );
-  });
-
   return (
     <div className="min-h-screen bg-black text-zinc-100 flex flex-col font-sans select-none">
       {/* Header with Clickable App Icon Menu */}
@@ -235,307 +224,6 @@ export default function App() {
 
       {/* Main Container with Generous Spacing */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pb-28 md:pb-14">
-        {/* ===================== TAB 2: AGENDA & RETORNOS ===================== */}
-        {activeTab === 'agenda' && (
-          <AgendaTab
-            patients={patients}
-            onEditPatient={handleOpenEditPatient}
-            onStartProntuario={handleStartProntuario}
-            onSavePatientSchedule={handleSavePatientSchedule}
-          />
-        )}
-
-        {/* ===================== TAB 1: INÍCIO ===================== */}
-        {activeTab === 'inicio' && (
-          <div className="space-y-8 animate-in fade-in duration-150">
-            {/* Top Welcome Header */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-zinc-900/80">
-              <div className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400">
-                  Painel Inicial • Instituto Vitale
-                </span>
-                <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-white tracking-tight">
-                  Bem-vinda, {professional.name.split(' ')[0]}
-                </h1>
-                <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
-                  Visão geral de seus atendimentos domiciliares, indicadores operacionais e acesso rápido aos pacientes.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setActiveTab('agenda')}
-                  className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-yellow-400 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Ver Agenda
-                </button>
-                <button
-                  onClick={() => {
-                    setPatientToEdit(null);
-                    setIsPatientModalOpen(true);
-                  }}
-                  className="px-5 py-2.5 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-300 hover:from-yellow-300 text-black rounded-xl text-xs font-bold shadow-lg shadow-yellow-950/40 cursor-pointer"
-                >
-                  + Novo Paciente
-                </button>
-              </div>
-            </div>
-
-            {/* Schedule Alert Banner */}
-            <ScheduleAlertBanner
-              patients={patients}
-              onStartProntuario={handleStartProntuario}
-              onViewAgenda={() => setActiveTab('agenda')}
-            />
-
-            {/* Resumo Operacional */}
-            <section className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-zinc-400">
-                <span className="font-semibold uppercase tracking-wider text-[11px] text-zinc-400">
-                  Resumo Operacional
-                </span>
-                <span className="text-[11px] text-zinc-400 font-mono">
-                  Sistema 100% Offline
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
-                <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-zinc-400 font-medium">Total de Pacientes</span>
-                    <div className="w-9 h-9 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-yellow-400">
-                      <Users className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl sm:text-3xl font-extrabold font-heading text-white">
-                      {patients.length}
-                    </span>
-                    <span className="text-[11px] text-zinc-400">fichas</span>
-                  </div>
-                </div>
-
-                <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-zinc-400 font-medium">Prontuários Selados</span>
-                    <div className="w-9 h-9 rounded-2xl bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center text-yellow-400">
-                      <ShieldCheck className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl sm:text-3xl font-extrabold font-heading text-yellow-400">
-                      {prontuarios.length}
-                    </span>
-                    <span className="text-[11px] text-zinc-400">assinados</span>
-                  </div>
-                </div>
-
-                <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-zinc-400 font-medium">Agendados</span>
-                    <div className="w-9 h-9 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400">
-                      <Clock className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl sm:text-3xl font-extrabold font-heading text-amber-300">
-                      {patients.filter((p) => p.scheduledDate).length}
-                    </span>
-                    <span className="text-[11px] text-zinc-400">pacientes</span>
-                  </div>
-                </div>
-
-                <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-zinc-400 font-medium">Rotas de Bairros</span>
-                    <div className="w-9 h-9 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-yellow-400">
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl sm:text-3xl font-extrabold font-heading text-zinc-100">
-                      {allNeighborhoods.length}
-                    </span>
-                    <span className="text-[11px] text-zinc-400">regiões</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Pesquisa & Filtros de Atendimento */}
-            <section className="bg-zinc-950/90 border border-zinc-850/90 rounded-3xl p-5 sm:p-7 shadow-xl space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800/70">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4 text-yellow-400" />
-                  <h2 className="text-sm font-bold text-white tracking-wide">
-                    Pesquisa & Filtros de Atendimento
-                  </h2>
-                </div>
-
-                {hasActiveFilters && (
-                  <button
-                    onClick={handleResetFilters}
-                    className="flex items-center gap-1.5 text-xs text-yellow-400 hover:text-yellow-300 transition-colors cursor-pointer"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Limpar Filtros</span>
-                  </button>
-                )}
-              </div>
-
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 sm:gap-4">
-                <div className="relative flex-1">
-                  <Search className="w-4 h-4 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Pesquisar por nome da paciente, bairro ou CPF..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-16 py-3 rounded-2xl bg-zinc-900/90 border border-zinc-800 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors cursor-pointer"
-                    >
-                      Limpar
-                    </button>
-                  )}
-                </div>
-
-                <div className="p-1.5 bg-zinc-900/90 border border-zinc-800 rounded-2xl flex items-center gap-1 overflow-x-auto scrollbar-none">
-                  {(['todos', 'ativo', 'em_atendimento', 'retorno_pendente'] as const).map((st) => (
-                    <button
-                      key={st}
-                      onClick={() => setStatusFilter(st)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                        statusFilter === st
-                          ? 'bg-yellow-400 text-black shadow-md font-bold'
-                          : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
-                      }`}
-                    >
-                      {st === 'todos' && 'Todos'}
-                      {st === 'ativo' && 'Ativos'}
-                      {st === 'em_atendimento' && 'Hoje'}
-                      {st === 'retorno_pendente' && 'Retornos'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {allNeighborhoods.length > 0 && (
-                <div className="pt-2 border-t border-zinc-850/60 flex items-center gap-2 overflow-x-auto text-xs scrollbar-none">
-                  <span className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5 shrink-0">
-                    <MapPin className="w-3.5 h-3.5 text-yellow-400" />
-                    <span>Filtrar por Rota:</span>
-                  </span>
-
-                  <button
-                    onClick={() => setNeighborhoodFilter('todos')}
-                    className={`px-3 py-1.5 rounded-xl text-[11px] transition-all shrink-0 cursor-pointer ${
-                      neighborhoodFilter === 'todos'
-                        ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 font-bold'
-                        : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    Todas as Regiões
-                  </button>
-
-                  {allNeighborhoods.map((bairro) => (
-                    <button
-                      key={bairro}
-                      onClick={() => setNeighborhoodFilter(bairro)}
-                      className={`px-3 py-1.5 rounded-xl text-[11px] transition-all shrink-0 cursor-pointer ${
-                        neighborhoodFilter === bairro
-                          ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 font-bold'
-                          : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200'
-                      }`}
-                    >
-                      {bairro}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-        )}
-
-        {/* ===================== TAB 2: PACIENTES ===================== */}
-        {activeTab === 'pacientes' && (
-          <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-150">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-zinc-900/80">
-              <div className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400">
-                  Gestão de Cadastros
-                </span>
-                <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-white tracking-tight">
-                  Fichas de Pacientes
-                </h1>
-                <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
-                  Lista completa de pacientes cadastrados para atendimentos domiciliares.
-                </p>
-              </div>
-
-              <button
-                onClick={() => {
-                  setPatientToEdit(null);
-                  setIsPatientModalOpen(true);
-                }}
-                className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-300 hover:from-yellow-300 text-black rounded-2xl text-xs sm:text-sm font-bold shadow-lg shadow-yellow-950/40 cursor-pointer"
-              >
-                <UserPlus className="w-4 h-4 stroke-[2.5]" />
-                <span>+ Novo Paciente</span>
-              </button>
-            </div>
-
-            <section className="space-y-4">
-              <div className="flex items-center justify-between text-xs text-zinc-400 px-1">
-                <span className="font-heading font-bold text-sm text-white">
-                  Fichas Cadastradas ({filteredPatients.length})
-                </span>
-              </div>
-
-              {filteredPatients.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {filteredPatients.map((patient) => {
-                    const latestPront = prontuarios.find((pr) => pr.patientId === patient.id);
-                    return (
-                      <PatientCard
-                        key={patient.id}
-                        patient={patient}
-                        latestProntuario={latestPront}
-                        onEdit={handleOpenEditPatient}
-                        onDelete={handleOpenDeletePatient}
-                        onStartProntuario={handleStartProntuario}
-                        onViewHistory={handleViewPatientHistory}
-                      />
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="bg-zinc-950/80 rounded-3xl border border-zinc-850 p-12 sm:p-16 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 mx-auto flex items-center justify-center text-yellow-400">
-                    <Users className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-base font-bold text-white">Nenhum paciente localizado</h3>
-                  <p className="text-xs text-zinc-400 max-w-md mx-auto">
-                    Cadastre seu primeiro paciente ou ajuste os filtros na aba Início.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setPatientToEdit(null);
-                      setIsPatientModalOpen(true);
-                    }}
-                    className="px-6 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black rounded-xl text-xs font-bold shadow-md cursor-pointer"
-                  >
-                    + Cadastrar Novo Paciente
-                  </button>
-                </div>
-              )}
-            </section>
-          </div>
-        )}
-
         {/* ===================== WIZARD CONTAINER (WHEN ATENDIMENTO IS ACTIVE) ===================== */}
         {activeProntuarioPatient ? (
           <div className="space-y-8 animate-in fade-in duration-150">
@@ -556,6 +244,7 @@ export default function App() {
             {/* ===================== TAB 1: INÍCIO ===================== */}
             {activeTab === 'inicio' && (
               <div className="space-y-8 animate-in fade-in duration-150">
+                {/* Top Welcome Header */}
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-zinc-900/80">
                   <div className="space-y-1">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-400">
@@ -595,175 +284,99 @@ export default function App() {
                   onViewAgenda={() => setActiveTab('agenda')}
                 />
 
-                {/* Resumo Operacional */}
-                <section className="space-y-3">
-                  <div className="flex items-center justify-between text-xs text-zinc-400">
-                    <span className="font-semibold uppercase tracking-wider text-[11px] text-zinc-400">
-                      Resumo Operacional
-                    </span>
-                    <span className="text-[11px] text-zinc-400 font-mono">
-                      Sistema 100% Offline
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
-                    <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs text-zinc-400 font-medium">Total de Pacientes</span>
-                        <div className="w-9 h-9 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-yellow-400">
-                          <Users className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl sm:text-3xl font-extrabold font-heading text-white">
-                          {patients.length}
-                        </span>
-                        <span className="text-[11px] text-zinc-400">fichas</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs text-zinc-400 font-medium">Prontuários Selados</span>
-                        <div className="w-9 h-9 rounded-2xl bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center text-yellow-400">
-                          <ShieldCheck className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl sm:text-3xl font-extrabold font-heading text-yellow-400">
-                          {prontuarios.length}
-                        </span>
-                        <span className="text-[11px] text-zinc-400">assinados</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs text-zinc-400 font-medium">Agendados</span>
-                        <div className="w-9 h-9 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400">
-                          <Clock className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl sm:text-3xl font-extrabold font-heading text-amber-300">
-                          {patients.filter((p) => p.scheduledDate).length}
-                        </span>
-                        <span className="text-[11px] text-zinc-400">pacientes</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-zinc-950/70 border border-zinc-900 rounded-3xl p-4 sm:p-5 hover:border-zinc-800 transition-colors shadow-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs text-zinc-400 font-medium">Rotas de Bairros</span>
-                        <div className="w-9 h-9 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-yellow-400">
-                          <MapPin className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl sm:text-3xl font-extrabold font-heading text-zinc-100">
-                          {allNeighborhoods.length}
-                        </span>
-                        <span className="text-[11px] text-zinc-400">regiões</span>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                {/* Pesquisa & Filtros de Atendimento */}
-                <section className="bg-zinc-950/90 border border-zinc-850/90 rounded-3xl p-5 sm:p-7 shadow-xl space-y-5">
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800/70">
-                    <div className="flex items-center gap-2">
-                      <SlidersHorizontal className="w-4 h-4 text-yellow-400" />
-                      <h2 className="text-sm font-bold text-white tracking-wide">
-                        Pesquisa & Filtros de Atendimento
-                      </h2>
-                    </div>
-
-                    {hasActiveFilters && (
+                {/* Pacientes Recentes & Últimos Prontuários */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                  {/* Pacientes Recentes */}
+                  <div className="bg-zinc-950/80 border border-zinc-900 rounded-3xl p-5 sm:p-6 space-y-4 shadow-md">
+                    <div className="flex items-center justify-between pb-3 border-b border-zinc-900">
+                      <h3 className="font-heading font-bold text-sm text-white flex items-center gap-2">
+                        <Users className="w-4 h-4 text-yellow-400" />
+                        <span>Pacientes Recentes</span>
+                      </h3>
                       <button
-                        onClick={handleResetFilters}
-                        className="flex items-center gap-1.5 text-xs text-yellow-400 hover:text-yellow-300 transition-colors cursor-pointer"
+                        onClick={() => setActiveTab('pacientes')}
+                        className="text-xs text-yellow-400 hover:underline font-semibold cursor-pointer"
                       >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Limpar Filtros</span>
+                        Ver Todos ({patients.length}) →
                       </button>
-                    )}
-                  </div>
+                    </div>
 
-                  <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 sm:gap-4">
-                    <div className="relative flex-1">
-                      <Search className="w-4 h-4 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        placeholder="Pesquisar por nome da paciente, bairro ou CPF..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-11 pr-16 py-3 rounded-2xl bg-zinc-900/90 border border-zinc-800 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
-                      />
-                      {searchQuery && (
-                        <button
-                          onClick={() => setSearchQuery('')}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors cursor-pointer"
+                    <div className="space-y-2.5">
+                      {patients.slice(0, 4).map((pat) => (
+                        <div
+                          key={pat.id}
+                          onClick={() => handleStartProntuario(pat)}
+                          className="p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-yellow-400/40 transition-all cursor-pointer flex items-center justify-between group"
                         >
-                          Limpar
-                        </button>
+                          <div className="space-y-0.5 min-w-0 pr-3">
+                            <h4 className="font-bold text-xs sm:text-sm text-white group-hover:text-yellow-400 transition-colors truncate">
+                              {pat.name}
+                            </h4>
+                            <p className="text-[11px] text-zinc-400">
+                              CPF: {pat.cpf} • {pat.address.neighborhood}
+                            </p>
+                          </div>
+                          <span className="shrink-0 text-[11px] font-bold text-yellow-400 bg-yellow-400/10 px-2.5 py-1.5 rounded-xl border border-yellow-400/30 group-hover:bg-yellow-400 group-hover:text-black transition-all">
+                            Atender
+                          </span>
+                        </div>
+                      ))}
+
+                      {patients.length === 0 && (
+                        <p className="text-xs text-zinc-500 text-center py-6">Nenhum paciente cadastrado.</p>
                       )}
                     </div>
-
-                    <div className="p-1.5 bg-zinc-900/90 border border-zinc-800 rounded-2xl flex items-center gap-1 overflow-x-auto scrollbar-none">
-                      {(['todos', 'ativo', 'em_atendimento', 'retorno_pendente'] as const).map((st) => (
-                        <button
-                          key={st}
-                          onClick={() => setStatusFilter(st)}
-                          className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                            statusFilter === st
-                              ? 'bg-yellow-400 text-black shadow-md font-bold'
-                              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
-                          }`}
-                        >
-                          {st === 'todos' && 'Todos'}
-                          {st === 'ativo' && 'Ativos'}
-                          {st === 'em_atendimento' && 'Hoje'}
-                          {st === 'retorno_pendente' && 'Retornos'}
-                        </button>
-                      ))}
-                    </div>
                   </div>
 
-                  {allNeighborhoods.length > 0 && (
-                    <div className="pt-2 border-t border-zinc-850/60 flex items-center gap-2 overflow-x-auto text-xs scrollbar-none">
-                      <span className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5 shrink-0">
-                        <MapPin className="w-3.5 h-3.5 text-yellow-400" />
-                        <span>Filtrar por Rota:</span>
-                      </span>
-
+                  {/* Últimos Prontuários */}
+                  <div className="bg-zinc-950/80 border border-zinc-900 rounded-3xl p-5 sm:p-6 space-y-4 shadow-md">
+                    <div className="flex items-center justify-between pb-3 border-b border-zinc-900">
+                      <h3 className="font-heading font-bold text-sm text-white flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-yellow-400" />
+                        <span>Últimos Prontuários Realizados</span>
+                      </h3>
                       <button
-                        onClick={() => setNeighborhoodFilter('todos')}
-                        className={`px-3 py-1.5 rounded-xl text-[11px] transition-all shrink-0 cursor-pointer ${
-                          neighborhoodFilter === 'todos'
-                            ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 font-bold'
-                            : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200'
-                        }`}
+                        onClick={() => setActiveTab('prontuarios')}
+                        className="text-xs text-yellow-400 hover:underline font-semibold cursor-pointer"
                       >
-                        Todas as Regiões
+                        Ver Todos ({prontuarios.length}) →
                       </button>
-
-                      {allNeighborhoods.map((bairro) => (
-                        <button
-                          key={bairro}
-                          onClick={() => setNeighborhoodFilter(bairro)}
-                          className={`px-3 py-1.5 rounded-xl text-[11px] transition-all shrink-0 cursor-pointer ${
-                            neighborhoodFilter === bairro
-                              ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 font-bold'
-                              : 'bg-zinc-900/80 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200'
-                          }`}
-                        >
-                          {bairro}
-                        </button>
-                      ))}
                     </div>
-                  )}
-                </section>
+
+                    <div className="space-y-2.5">
+                      {prontuarios.slice(0, 3).map((pr) => {
+                        const pat = patients.find(p => p.id === pr.patientId);
+                        const dateFormatted = new Date(pr.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                        return (
+                          <div
+                            key={pr.id}
+                            onClick={() => {
+                              setActiveViewerProntuario(pr);
+                              setIsViewerOpen(true);
+                            }}
+                            className="p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-yellow-400/40 transition-all cursor-pointer flex items-center justify-between group"
+                          >
+                            <div className="space-y-0.5 min-w-0 pr-3">
+                              <h4 className="font-bold text-xs sm:text-sm text-white group-hover:text-yellow-400 transition-colors truncate">
+                                {pat ? pat.name : 'Paciente'}
+                              </h4>
+                              <p className="text-[11px] text-zinc-400 truncate">
+                                {dateFormatted} • {pr.etapa1?.mainComplaints?.[0] || 'Atendimento estético'}
+                              </p>
+                            </div>
+                            <span className="shrink-0 text-[11px] font-bold text-zinc-300 bg-zinc-800 px-2.5 py-1.5 rounded-xl border border-zinc-700 group-hover:bg-yellow-400 group-hover:text-black transition-all">
+                              Abrir
+                            </span>
+                          </div>
+                        );
+                      })}
+
+                      {prontuarios.length === 0 && (
+                        <p className="text-xs text-zinc-500 text-center py-6">Nenhum prontuário selado ainda.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -951,4 +564,3 @@ export default function App() {
     </div>
   );
 }
-
