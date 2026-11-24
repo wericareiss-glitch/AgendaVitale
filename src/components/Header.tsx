@@ -5,6 +5,7 @@ import {
   WifiOff, 
   Database, 
   Users, 
+  Calendar,
   FileText, 
   UserCheck, 
   ChevronDown, 
@@ -16,8 +17,8 @@ import { storageService } from '../services/storage';
 import { ProfessionalProfile } from '../types';
 
 interface HeaderProps {
-  activeTab: 'pacientes' | 'novo_prontuario' | 'perfil' | 'wal';
-  setActiveTab: (tab: 'pacientes' | 'novo_prontuario' | 'perfil' | 'wal') => void;
+  activeTab: 'pacientes' | 'agenda' | 'novo_prontuario' | 'perfil' | 'wal';
+  setActiveTab: (tab: 'pacientes' | 'agenda' | 'novo_prontuario' | 'perfil' | 'wal') => void;
   onOpenNewPatientModal: () => void;
   isAppMenuOpen?: boolean;
   setIsAppMenuOpen?: (open: boolean) => void;
@@ -219,7 +220,18 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full text-left p-2.5 rounded-xl text-zinc-200 hover:bg-zinc-900 hover:text-yellow-400 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
                   <Users className="w-4 h-4 text-zinc-400" />
-                  <span>Agenda & Fichas de Pacientes</span>
+                  <span>Fichas de Pacientes</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setActiveTab('agenda');
+                  }}
+                  className="w-full text-left p-2.5 rounded-xl text-zinc-200 hover:bg-zinc-900 hover:text-yellow-400 flex items-center gap-2.5 transition-colors cursor-pointer"
+                >
+                  <Calendar className="w-4 h-4 text-yellow-400" />
+                  <span>Agenda & Retornos</span>
                 </button>
 
                 <button
@@ -286,7 +298,19 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Pacientes & Agenda</span>
+            <span>Pacientes</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('agenda')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'agenda'
+                ? 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/40 shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+            }`}
+          >
+            <Calendar className="w-4 h-4 text-yellow-400" />
+            <span>Agenda & Retornos</span>
           </button>
 
           <button

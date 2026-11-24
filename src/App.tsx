@@ -20,11 +20,12 @@ import { WizardContainer } from './components/WizardContainer';
 import { ProntuarioViewerModal } from './components/ProntuarioViewerModal';
 import { ProfessionalSettingsModal } from './components/ProfessionalSettingsModal';
 import { WalJournalModal } from './components/WalJournalModal';
+import { AgendaTab } from './components/AgendaTab';
 import { storageService } from './services/storage';
 import { Patient, Prontuario, ProfessionalProfile } from './types';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'pacientes' | 'novo_prontuario' | 'perfil' | 'wal'>('pacientes');
+  const [activeTab, setActiveTab] = useState<'pacientes' | 'agenda' | 'novo_prontuario' | 'perfil' | 'wal'>('pacientes');
 
   // App icon dropdown menu state
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
@@ -98,6 +99,18 @@ export default function App() {
   const handleStartProntuario = (patient: Patient) => {
     setActiveProntuarioPatient(patient);
     setActiveTab('novo_prontuario');
+  };
+
+  const handleSavePatientDates = (patientId: string, scheduledDate?: string, returnDate?: string) => {
+    const p = storageService.getPatientById(patientId);
+    if (p) {
+      storageService.savePatient({
+        ...p,
+        scheduledDate,
+        returnDate,
+      });
+      refreshData();
+    }
   };
 
   const handleSaveProntuario = (newProntuario: Prontuario) => {
@@ -184,6 +197,16 @@ export default function App() {
 
       {/* Main Container with Generous Spacing */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pb-28 md:pb-14">
+        {/* ===================== TAB 2: AGENDA & RETORNOS ===================== */}
+        {activeTab === 'agenda' && (
+          <AgendaTab
+            patients={patients}
+            onEditPatient={handleOpenEditPatient}
+            onStartProntuario={handleStartProntuario}
+            onSavePatientDates={handleSavePatientDates}
+          />
+        )}
+
         {/* ===================== TAB 1: PACIENTES & AGENDA ===================== */}
         {activeTab === 'pacientes' && (
           <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-150">

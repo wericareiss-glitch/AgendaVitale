@@ -1,9 +1,9 @@
 import React from 'react';
-import { Users, FileText, PlusCircle, Sparkles } from 'lucide-react';
+import { Users, Calendar, FileText, PlusCircle, Sparkles } from 'lucide-react';
 
 interface MobileBottomNavProps {
-  activeTab: 'pacientes' | 'novo_prontuario' | 'perfil' | 'wal';
-  setActiveTab: (tab: 'pacientes' | 'novo_prontuario' | 'perfil' | 'wal') => void;
+  activeTab: 'pacientes' | 'agenda' | 'novo_prontuario' | 'perfil' | 'wal';
+  setActiveTab: (tab: 'pacientes' | 'agenda' | 'novo_prontuario' | 'perfil' | 'wal') => void;
   onOpenAppMenu: () => void;
   onOpenNewPatient: () => void;
   patientsCount: number;
@@ -17,8 +17,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   patientsCount,
 }) => {
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-black/95 backdrop-blur-lg border-t border-zinc-800/90 px-4 py-2 pb-safe shadow-2xl flex items-center justify-between select-none">
-      {/* 1. Pacientes & Agenda */}
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-black/95 backdrop-blur-lg border-t border-zinc-800/90 px-3 py-2 pb-safe shadow-2xl flex items-center justify-between select-none">
+      {/* 1. Pacientes */}
       <button
         type="button"
         onClick={() => setActiveTab('pacientes')}
@@ -29,26 +29,26 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         }`}
       >
         <Users className="w-5 h-5" />
-        <span className="text-[11px] mt-0.5">Pacientes</span>
+        <span className="text-[10px] mt-0.5">Pacientes</span>
         {patientsCount > 0 && (
-          <span className="absolute top-0 right-4 sm:right-6 px-1.5 py-0.2 text-[9px] font-bold bg-yellow-400 text-black rounded-full">
+          <span className="absolute top-0 right-2 px-1.5 py-0.2 text-[9px] font-bold bg-yellow-400 text-black rounded-full">
             {patientsCount}
           </span>
         )}
       </button>
 
-      {/* 2. Prontuário */}
+      {/* 2. Agenda & Retornos */}
       <button
         type="button"
-        onClick={() => setActiveTab('novo_prontuario')}
+        onClick={() => setActiveTab('agenda')}
         className={`flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer ${
-          activeTab === 'novo_prontuario'
+          activeTab === 'agenda'
             ? 'text-yellow-400 font-bold'
             : 'text-zinc-400 hover:text-zinc-200'
         }`}
       >
-        <FileText className="w-5 h-5" />
-        <span className="text-[11px] mt-0.5">Prontuário</span>
+        <Calendar className="w-5 h-5 text-yellow-400" />
+        <span className="text-[10px] mt-0.5">Agenda</span>
       </button>
 
       {/* 3. Action Button Central (+ Paciente) */}
@@ -63,7 +63,21 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         </button>
       </div>
 
-      {/* 4. Menu do Aplicativo */}
+      {/* 4. Prontuário */}
+      <button
+        type="button"
+        onClick={() => setActiveTab('novo_prontuario')}
+        className={`flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer ${
+          activeTab === 'novo_prontuario'
+            ? 'text-yellow-400 font-bold'
+            : 'text-zinc-400 hover:text-zinc-200'
+        }`}
+      >
+        <FileText className="w-5 h-5" />
+        <span className="text-[10px] mt-0.5">Prontuário</span>
+      </button>
+
+      {/* 5. Menu do Aplicativo */}
       <button
         type="button"
         onClick={onOpenAppMenu}
@@ -71,7 +85,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         title="Abrir Menu Vitale"
       >
         <Sparkles className="w-5 h-5 text-yellow-400" />
-        <span className="text-[11px] mt-0.5">Menu</span>
+        <span className="text-[10px] mt-0.5">Menu</span>
       </button>
     </nav>
   );

@@ -27,6 +27,8 @@ const INITIAL_FORM_DATA = {
   state: 'SP',
   cep: '',
   referencePoint: '',
+  scheduledDate: '',
+  returnDate: '',
   status: 'ativo' as Patient['status'],
   notes: '',
 };
@@ -63,6 +65,8 @@ export const PatientModal: React.FC<PatientModalProps> = ({
         state: patientToEdit.address.state,
         cep: patientToEdit.address.cep,
         referencePoint: patientToEdit.address.referencePoint || '',
+        scheduledDate: patientToEdit.scheduledDate ? patientToEdit.scheduledDate.slice(0, 16) : '',
+        returnDate: patientToEdit.returnDate ? patientToEdit.returnDate.slice(0, 10) : '',
         status: patientToEdit.status,
         notes: patientToEdit.notes || '',
       });
@@ -230,6 +234,8 @@ export const PatientModal: React.FC<PatientModalProps> = ({
         cep: formData.cep.trim(),
         referencePoint: formData.referencePoint.trim() || undefined,
       },
+      scheduledDate: formData.scheduledDate ? new Date(formData.scheduledDate).toISOString() : undefined,
+      returnDate: formData.returnDate ? new Date(formData.returnDate).toISOString() : undefined,
       status: formData.status,
       notes: formData.notes.trim() || undefined,
     });
@@ -490,6 +496,40 @@ export const PatientModal: React.FC<PatientModalProps> = ({
                   value={formData.referencePoint}
                   onChange={(e) => setFormData({ ...formData, referencePoint: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-yellow-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Agenda & Retorno Dates */}
+          <div className="pt-2 border-t border-zinc-800">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400 flex items-center gap-1.5 mb-3">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Agenda & Data de Retorno</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-zinc-300 font-medium mb-1">
+                  Data e Horário de Agendamento
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.scheduledDate}
+                  onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:border-yellow-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-zinc-300 font-medium mb-1">
+                  Data de Retorno / Revisão
+                </label>
+                <input
+                  type="date"
+                  value={formData.returnDate}
+                  onChange={(e) => setFormData({ ...formData, returnDate: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:border-yellow-400"
                 />
               </div>
             </div>
